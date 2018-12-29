@@ -1,0 +1,58 @@
+#!/usr/bin/ksh
+Tmp="/tmp/$$"
+TmpDir="/tmp/dir$$"
+trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
+trap "exit 2" 1 2 3 13 15
+
+
+while getopts "c:r:a:e:i:xv" arg
+do
+	case $arg in
+            i)  
+                JF=$OPTARG 
+                while [[ "$var" != "q" ]]
+                do
+                     print -n "figg/$JF >> ";read var;
+	             case $var in
+                       e) figg -e $JF ;;
+                       c) figg -c $JF ;;
+                       r) figg -r $JF ;;
+                       l) ls ;;
+                       h) print "\n(e)dit (c)ompile (r)un (l)ist (h)elp\n" 
+                          print "FILENAME IS "$JF"\n" 
+                          javac -version
+                          java -version
+                          print "\n" 
+                          ;;
+	             esac
+                done
+
+               ;;
+            c) JF=$OPTARG 
+               export CLASSPATH=./classes
+               javac -d classes $JF.java
+               ;;
+            x) 
+               export CLASSPATH=./classes
+               javac -d classes *.java
+               ;;
+            r) JF=$OPTARG 
+               export CLASSPATH=./classes
+               java $JF
+               ;;
+            a) JF=$OPTARG 
+               export CLASSPATH=./classes
+               javac $JF.java
+               java $JF
+               ;;
+            e) JF=$OPTARG 
+               vi $JF.java
+               ;;
+            v) java  -version
+               ;;
+	    *) exit 0 ;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+
