@@ -5,6 +5,10 @@ trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 rm $Tmp  >/dev/null 2>&1
 
+
+# ssh-add ~/.ssh/itlearningresources_rsa
+# #######################################
+
 LOCAL=""
 while getopts "l" arg
 do
