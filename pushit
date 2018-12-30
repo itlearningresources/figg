@@ -18,6 +18,7 @@ print $ANON
 git add README.md 
 git add pushit
 git add figg
+git add src
 
 git commit -m "Update"
 
