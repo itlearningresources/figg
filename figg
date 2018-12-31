@@ -5,7 +5,7 @@ trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 
 
-while getopts "c:r:a:e:i:lxv" arg
+while getopts "d:c:r:a:e:i:lxv" arg
 do
 	case $arg in
             i)  
@@ -17,9 +17,10 @@ do
 	             case $cmd  in
                        e) figg -e $JF ;;
                        c) figg -c $JF ;;
+                       d) figg -d $JF ;;
                        r) figg -r $JF $1 $2 $3 $4 $5 $6;;
                        l) figg -l ;;
-                       h) print "\n(e)dit (c)ompile (r)un (l)ist (h)elp\n" 
+                       h) print "\n(e)dit (c)ompile (r)un (l)ist (d) javadoc (h)elp\n" 
                           print "FILENAME IS "$JF"\n" 
                           javac -version
                           java -version
@@ -30,7 +31,15 @@ do
 
                ;;
             c) JF=$OPTARG 
-               javac -cp classes -d classes src/$JF.java
+               rm -f $Tmp >/dev/null 2>&1
+               javac -cp classes -d classes src/$JF.java 2> $Tmp
+               if [ -s $Tmp ]
+               then
+                    print "Listing"
+                    cat   $Tmp
+               else
+                    print "OK"
+               fi
                ;;
             x) 
                javac -cp classes -d classes src/*.java
@@ -48,6 +57,11 @@ do
                vi src/$JF.java
                ;;
             l) ls -l src
+               ;;
+            d) JF=$OPTARG 
+               shift $(($OPTIND - 1))
+               javadoc -d doc src/*.java
+               xdg-open  "doc/index.html" >/dev/null 2>&1
                ;;
             v) java  -version
                ;;
