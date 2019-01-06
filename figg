@@ -37,8 +37,24 @@ do
                        reset)
                            rm -f classes/*.class  >/dev/null 2>&1
                            ;;
-                       h) print "\n(f)ile (e)dit (c)ompile (d)ebug (r)un (l)ist (j)avadoc (h)elp\n" 
-                          print "FILENAME IS "$JF"\n" 
+                       h) print "\n"
+                          print "  (f)ile (e)dit (c)ompile (d)ebug (r)un (l)ist (j)avadoc (h)elp" 
+                          print "\n"
+                          print "          f <source file name>      - Change the current source file" 
+                          print "          e                         - Edit current source file" 
+                          print "          c                         - Compile current source file" 
+                          print "          d                         - Edit source file and listing file" 
+                          print "          r                         - Run (no split window)" 
+                          print "          R                         - Run in split window" 
+                          print "          l                         - list source file to screen" 
+                          print "          j                         - Generate and display Javadoc" 
+                          print "\n"
+                          print "          q                         - Quit" 
+                          print "          h                         - Help" 
+                          print "\n"
+                          print "\n"
+
+                          print "Current source file is "$JF"\n" 
                           javac -version
                           java -version
                           print "\n" 
