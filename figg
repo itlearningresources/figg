@@ -5,7 +5,7 @@ trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 
 
-while getopts "d:c:r:a:e:i:lxvj" arg
+while getopts "n:d:c:r:R:a:e:i:lxvj" arg
 do
 	case $arg in
             i)  
@@ -19,11 +19,19 @@ do
                      cmd=${arr[0]};
 	             case $cmd  in
                        f) JF=${arr[1]} ;;
+                       s) cat src/$JF.java ;;
+                       v) vim ~/.vimrc ;;
+                       ff) vim figg ;;
+
+                       n) JF=${arr[1]}
+                          figg -n $JF ;;
                        e) figg -e $JF ;;
                        c) figg -c $JF ;;
                        d) figg -d $JF ;;
                        j) figg -j $JF ;;
                        r) figg -r $JF $1 $2 $3 $4 $5 $6;;
+                       R) figg -R $JF $1 $2 $3 $4 $5 $6;;
+                       x) figg -x ;;
                        l) figg -l ;;
                        ls) figg -l ;;
                        reset)
@@ -35,6 +43,11 @@ do
                           java -version
                           print "\n" 
                           ;;
+                       *) if [ -s src/$cmd.java ]
+                          then
+                               vim src/$cmd.java 
+                          fi
+                          ;;
 	             esac
                 done
 
@@ -45,24 +58,42 @@ do
                if [ -s tmp/$JF.lst ]
                then
                     print "Listing"
-                    vi src/$JF.java tmp/$JF.lst
-                    # cat   tmp/$JF.lst
+                    cp tmp/$JF.lst last.lst 
+                    # vi src/$JF.java tmp/$JF.lst
+                    # vim quickfix stuff
+                    # :copen " Open the quickfix window
+                    # :ccl   " Close it
+                    # :cw    " Open it if there are "errors", close it otherwise (some people prefer this)
+                    # :cn    " Go to the next error in the window
+                    # :cnf   " Go to the first error in the next file
+                    vim -c "cw" -c "resize 12" -c "map <F1> :cn<cr><cr>" -c "map <F2> :cp<cr><cr>" -q tmp/$JF.lst
                else
                     print "OK"
                fi
                ;;
+            n) JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+               shift $(($OPTIND - 1))
+               cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+               cp $Tmp src/$JF.java
+               vim src/$JF.java
+               ;;
             d) JF=$OPTARG 
                shift $(($OPTIND - 1))
-               vi tmp/$JF.lst src/$JF.java
+               vim -o tmp/$JF.lst src/$JF.java
                ;;
             x) 
+               print "Compile All"
                javac -cp classes -d classes src/*.java
                ;;
-            r) JF=$OPTARG 
+            R) JF=$OPTARG 
                shift $(($OPTIND - 1))
                rm -f $Tmp >/dev/null 2>&1
                java -cp classes $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
-               vim -O src/$JF.java $Tmp
+               vim -c "wincmd w | vert resize 24 | wincmd w" -O src/$JF.java $Tmp
+               ;;
+            r) JF=$OPTARG 
+               shift $(($OPTIND - 1))
+               java -cp classes $JF $1 $2 $3 $4 $5 $6
                ;;
             a) JF=$OPTARG 
                shift $(($OPTIND - 1))
@@ -70,7 +101,7 @@ do
                java -cp classes $JF $1 $2 $3 $4 $5 $6
                ;;
             e) JF=$OPTARG 
-               vi src/$JF.java
+               vim src/$JF.java
                ;;
             l) ls -l src
                ;;
