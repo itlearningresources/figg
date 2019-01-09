@@ -4,6 +4,8 @@ TmpDir="/tmp/dir$$"
 trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 
+CPATH=classes
+CPATH=$CPATH:third-party/joda-time-2.8.1.jar
 
 while getopts "n:d:c:r:R:a:e:i:lxvj" arg
 do
@@ -70,7 +72,8 @@ do
                ;;
             c) JF=$OPTARG 
                rm -f tmp/$JF.lst >/dev/null 2>&1
-               javac -Xlint:-rawtypes -cp classes -d classes src/$JF.java 2> tmp/$JF.lst
+               print "javac -Xlint:-rawtypes -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst"
+               javac -Xlint:-rawtypes -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst
                if [ -s tmp/$JF.lst ]
                then
                     print "Listing"
@@ -99,22 +102,22 @@ do
                ;;
             x) 
                print "Compile All"
-               javac -cp classes -d classes src/*.java
+               javac -cp $CPATH -d classes src/*.java
                ;;
             R) JF=$OPTARG 
                shift $(($OPTIND - 1))
                rm -f $Tmp >/dev/null 2>&1
-               java -cp classes $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
+               java -cp $CPATH -ea $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
                vim -c "wincmd w | vert resize 24 | wincmd w" -O src/$JF.java $Tmp
                ;;
             r) JF=$OPTARG 
                shift $(($OPTIND - 1))
-               java -cp classes $JF $1 $2 $3 $4 $5 $6
+               java -cp $CPATH -ea $JF $1 $2 $3 $4 $5 $6
                ;;
             a) JF=$OPTARG 
                shift $(($OPTIND - 1))
                javac -cp classes -d classes src/$JF.java
-               java -cp classes $JF $1 $2 $3 $4 $5 $6
+               java -cp classes -ea $JF $1 $2 $3 $4 $5 $6
                ;;
             e) JF=$OPTARG 
                vim src/$JF.java
