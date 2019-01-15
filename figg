@@ -6,8 +6,42 @@ trap "exit 2" 1 2 3 13 15
 
 CPATH=classes
 CPATH=$CPATH:third-party/joda-time-2.8.1.jar
+CPATH=$CPATH:third-party/commons-logging-1.1.3.jar 
 
-while getopts "n:d:c:r:R:a:e:i:lxvj" arg
+RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
+QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
+
+run() {
+               print "java -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7" >&2
+               java -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7
+}
+compile() {
+               JF=$1
+               rm -f tmp/$JF.lst >/dev/null 2>&1
+               print "javac -Xlint:-rawtypes -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst" >&2
+               javac -Xlint:-rawtypes -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst
+}
+compileDebug() {
+               JF=$1
+               compile $JF
+               if [ -s tmp/$JF.lst ]
+               then
+                    print "Listing"
+                    cp tmp/$JF.lst last.lst 
+                    # vi src/$JF.java tmp/$JF.lst
+                    # vim quickfix stuff
+                    # :copen " Open the quickfix window
+                    # :ccl   " Close it
+                    # :cw    " Open it if there are "errors", close it otherwise (some people prefer this)
+                    # :cn    " Go to the next error in the window
+                    # :cnf   " Go to the first error in the next file
+                    vim -c "cw" -c "resize $QFIXWIDTH" -c "map <F1> :cn<cr><cr>" -c "map <F2> :cp<cr><cr>" -q tmp/$JF.lst
+               else
+                    print "OK" >&2
+               fi
+}
+
+while getopts "t:n:d:c:r:R:a:e:i:lxvj" arg
 do
 	case $arg in
             i)  
@@ -20,6 +54,7 @@ do
                      print -n "figg/$JF >> ";read var;set -A arr $var;
                      cmd=${arr[0]};
 	             case $cmd  in
+                       x) cmd="q" ;;
                        f) JF=${arr[1]} ;;
                        s) cat src/$JF.java ;;
                        v) vim ~/.vimrc ;;
@@ -28,12 +63,14 @@ do
                        n) JF=${arr[1]}
                           figg -n $JF ;;
                        e) figg -e $JF ;;
+                       a) figg -a $JF ;;
                        c) figg -c $JF ;;
+                       t) figg -t $JF ;;
                        d) figg -d $JF ;;
                        j) figg -j $JF ;;
                        r) figg -r $JF $1 $2 $3 $4 $5 $6;;
                        R) figg -R $JF $1 $2 $3 $4 $5 $6;;
-                       x) figg -x ;;
+                       y) figg -y ;;
                        l) figg -l ;;
                        ls) figg -l ;;
                        reset)
@@ -57,6 +94,9 @@ do
                           print "\n"
 
                           print "Current source file is "$JF"\n" 
+                          print "Current command line classpath is" 
+                          print $CPATH
+                          print "" 
                           javac -version
                           java -version
                           print "\n" 
@@ -70,25 +110,7 @@ do
                 done
 
                ;;
-            c) JF=$OPTARG 
-               rm -f tmp/$JF.lst >/dev/null 2>&1
-               print "javac -Xlint:-rawtypes -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst"
-               javac -Xlint:-rawtypes -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst
-               if [ -s tmp/$JF.lst ]
-               then
-                    print "Listing"
-                    cp tmp/$JF.lst last.lst 
-                    # vi src/$JF.java tmp/$JF.lst
-                    # vim quickfix stuff
-                    # :copen " Open the quickfix window
-                    # :ccl   " Close it
-                    # :cw    " Open it if there are "errors", close it otherwise (some people prefer this)
-                    # :cn    " Go to the next error in the window
-                    # :cnf   " Go to the first error in the next file
-                    vim -c "cw" -c "resize 12" -c "map <F1> :cn<cr><cr>" -c "map <F2> :cp<cr><cr>" -q tmp/$JF.lst
-               else
-                    print "OK"
-               fi
+            c) compileDebug $OPTARG 
                ;;
             n) JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                shift $(($OPTIND - 1))
@@ -100,24 +122,28 @@ do
                shift $(($OPTIND - 1))
                vim -o tmp/$JF.lst src/$JF.java
                ;;
-            x) 
+            y) 
                print "Compile All"
-               javac -cp $CPATH -d classes src/*.java
+               for file in src/*.java; do
+                   JF=`echo $file | gawk '{gsub(/[.]java$/,"",$0);gsub(/^src[/]/,"",$0);print $0;}'`
+                   print $JF
+                   compile $JF
+                done 
                ;;
             R) JF=$OPTARG 
                shift $(($OPTIND - 1))
                rm -f $Tmp >/dev/null 2>&1
-               java -cp $CPATH -ea $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
-               vim -c "wincmd w | vert resize 24 | wincmd w" -O src/$JF.java $Tmp
+               run -ea $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
+               vim -c "wincmd w | vert resize $RUNHWIDTH | wincmd w" -O src/$JF.java $Tmp
                ;;
             r) JF=$OPTARG 
                shift $(($OPTIND - 1))
-               java -cp $CPATH -ea $JF $1 $2 $3 $4 $5 $6
+               run $JF $1 $2 $3 $4 $5 $6
                ;;
             a) JF=$OPTARG 
                shift $(($OPTIND - 1))
-               javac -cp classes -d classes src/$JF.java
-               java -cp classes -ea $JF $1 $2 $3 $4 $5 $6
+               compile $JF
+               run $JF $1 $2 $3 $4 $5 $6
                ;;
             e) JF=$OPTARG 
                vim src/$JF.java
