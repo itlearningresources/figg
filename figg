@@ -5,8 +5,8 @@ trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 
 CPATH=classes
-CPATH=$CPATH:third-party/joda-time-2.8.1.jar
-CPATH=$CPATH:third-party/commons-logging-1.1.3.jar 
+CPATH=$CPATH:lib/joda-time-2.8.1.jar
+CPATH=$CPATH:lib/commons-logging-1.1.3.jar 
 
 RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
 QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
@@ -41,12 +41,16 @@ compileDebug() {
                fi
 }
 
-while getopts "t:n:d:c:r:R:a:e:i:lxvj" arg
+while getopts "b:t:n:d:c:r:R:a:e:i:lxvj" arg
 do
 	case $arg in
             i)  
                 JF=$OPTARG 
                 JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+                if [ ! -e "src/$JF.java" ]; then
+                    print "Error: src/$JF.java does not exist"
+                    exit 1
+                fi
 
                 shift $(($OPTIND - 1))
                 while [[ "$cmd" != "q" ]]
@@ -62,6 +66,8 @@ do
 
                        n) JF=${arr[1]}
                           figg -n $JF ;;
+                       b) JF=${arr[1]}
+                          figg -b $JF ;;
                        e) figg -e $JF ;;
                        a) figg -a $JF ;;
                        c) figg -c $JF ;;
@@ -77,7 +83,7 @@ do
                            rm -f classes/*.class  >/dev/null 2>&1
                            ;;
                        h) print "\n"
-                          print "  (f)ile (e)dit (c)ompile (d)ebug (r)un (l)ist (j)avadoc (h)elp" 
+                           print "  (f)ile (e)dit (n)ew (b)lank (c)ompile (d)ebug (r)un (l)ist (j)avadoc (h)elp" 
                           print "\n"
                           print "          f <source file name>      - Change the current source file" 
                           print "          e                         - Edit current source file" 
@@ -87,6 +93,8 @@ do
                           print "          R                         - Run in split window" 
                           print "          l                         - list source file to screen" 
                           print "          j                         - Generate and display Javadoc" 
+                          print "          n                         - New source file using template" 
+                          print "          b                         - New blank source file" 
                           print "\n"
                           print "          q                         - Quit" 
                           print "          h                         - Help" 
@@ -114,9 +122,22 @@ do
                ;;
             n) JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                shift $(($OPTIND - 1))
-               cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
-               cp $Tmp src/$JF.java
-               vim src/$JF.java
+               if [ ! -e "src/$JF.java" ]; then
+                    cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+                    cp $Tmp src/$JF.java
+                    vim src/$JF.java
+               else
+                    print "Error: src/$JF.java already exists"
+               fi
+               ;;
+            b) JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+               shift $(($OPTIND - 1))
+               if [ ! -e "src/$JF.java" ]; then
+                    touch $Tmp src/$JF.java
+                    vim src/$JF.java
+               else
+                    print "Error: src/$JF.java already exists"
+               fi
                ;;
             d) JF=$OPTARG 
                shift $(($OPTIND - 1))
@@ -148,7 +169,7 @@ do
             e) JF=$OPTARG 
                vim src/$JF.java
                ;;
-            l) ls -l src
+            l) ls src
                ;;
             j) javadoc -d doc src/*.java
                xdg-open  "doc/index.html" >/dev/null 2>&1
