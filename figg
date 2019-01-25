@@ -7,19 +7,51 @@ trap "exit 2" 1 2 3 13 15
 CPATH=classes
 CPATH=$CPATH:lib/joda-time-2.8.1.jar
 CPATH=$CPATH:lib/commons-logging-1.1.3.jar 
-
+JAVAPATH=java 
+JAVAPATH=/home/mestes/jdk-11.0.2/bin/java 
+JAVACPATH=javac 
+JAVACPATH=/home/mestes/jdk-11.0.2/bin/javac 
+XLINTS="-Xlint:-deprecation -Xlint:-rawtypes"
 RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
 QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
+help() {
+                          print "\n"
+                          print "  (f)ile (e)dit (n)ew (b)lank (c)ompile (d)ebug (r)un (l)ist (j)avadoc (h)elp" 
+                          print "\n"
+                          print "          f <source file name>      - Change the current source file" 
+                          print "          e                         - Edit current source file" 
+                          print "          c                         - Compile current source file" 
+                          print "          d                         - Edit source file and listing file" 
+                          print "          r                         - Run (no split window)" 
+                          print "          R                         - Run in split window" 
+                          print "          l                         - list source file to screen" 
+                          print "          j                         - Generate and display Javadoc" 
+                          print "          n                         - New source file using template" 
+                          print "          b                         - New blank source file" 
+                          print "\n"
+                          print "          q                         - Quit" 
+                          print "          h                         - Help" 
+                          print "\n"
+                          print "\n"
 
+                          print "Current source file is "$JF"\n" 
+                          print "Current command line classpath is" 
+                          print $CPATH
+                          print "" 
+                          javac -version
+                          java -version
+                          print "\n" 
+}
 run() {
-               print "java -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7" >&2
-               java -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7
+               print "$JAVAPATH/java -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7" >&2
+               $JAVAPATH -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7
 }
 compile() {
                JF=$1
                rm -f tmp/$JF.lst >/dev/null 2>&1
-               print "javac -Xlint:-rawtypes -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst" >&2
-               javac -Xlint:-rawtypes -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst
+               print "$JAVACPATH $XLINTS -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst" >&2
+               javac -version
+               $JAVACPATH $XLINTS -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst
 }
 compileDebug() {
                JF=$1
@@ -40,19 +72,7 @@ compileDebug() {
                     print "OK" >&2
                fi
 }
-
-while getopts "b:t:n:d:c:r:R:a:e:i:lxvj" arg
-do
-	case $arg in
-            i)  
-                JF=$OPTARG 
-                JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
-                if [ ! -e "src/$JF.java" ]; then
-                    print "Error: src/$JF.java does not exist"
-                    exit 1
-                fi
-
-                shift $(($OPTIND - 1))
+Inter() {
                 while [[ "$cmd" != "q" ]]
                 do
                      print -n "figg/$JF >> ";read var;set -A arr $var;
@@ -82,32 +102,7 @@ do
                        reset)
                            rm -f classes/*.class  >/dev/null 2>&1
                            ;;
-                       h) print "\n"
-                           print "  (f)ile (e)dit (n)ew (b)lank (c)ompile (d)ebug (r)un (l)ist (j)avadoc (h)elp" 
-                          print "\n"
-                          print "          f <source file name>      - Change the current source file" 
-                          print "          e                         - Edit current source file" 
-                          print "          c                         - Compile current source file" 
-                          print "          d                         - Edit source file and listing file" 
-                          print "          r                         - Run (no split window)" 
-                          print "          R                         - Run in split window" 
-                          print "          l                         - list source file to screen" 
-                          print "          j                         - Generate and display Javadoc" 
-                          print "          n                         - New source file using template" 
-                          print "          b                         - New blank source file" 
-                          print "\n"
-                          print "          q                         - Quit" 
-                          print "          h                         - Help" 
-                          print "\n"
-                          print "\n"
-
-                          print "Current source file is "$JF"\n" 
-                          print "Current command line classpath is" 
-                          print $CPATH
-                          print "" 
-                          javac -version
-                          java -version
-                          print "\n" 
+                       h) help
                           ;;
                        *) if [ -s src/$cmd.java ]
                           then
@@ -116,6 +111,20 @@ do
                           ;;
 	             esac
                 done
+}
+while getopts "b:t:n:d:c:r:R:a:e:i:lxvj" arg
+do
+	case $arg in
+            i)  
+                JF=$OPTARG 
+                JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+                if [ ! -e "src/$JF.java" ]; then
+                    print "Error: src/$JF.java does not exist"
+                    exit 1
+                fi
+
+                shift $(($OPTIND - 1))
+                Inter
 
                ;;
             c) compileDebug $OPTARG 
