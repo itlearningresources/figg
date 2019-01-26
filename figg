@@ -72,7 +72,7 @@ compileDebug() {
                     print "OK" >&2
                fi
 }
-Inter() {
+Interactive() {
                 while [[ "$cmd" != "q" ]]
                 do
                      print -n "figg/$JF >> ";read var;set -A arr $var;
@@ -124,7 +124,7 @@ do
                 fi
 
                 shift $(($OPTIND - 1))
-                Inter
+                Interactive
 
                ;;
             c) compileDebug $OPTARG 
