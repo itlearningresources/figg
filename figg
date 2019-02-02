@@ -3,11 +3,11 @@ Tmp="/tmp/$$"
 TmpDir="/tmp/dir$$"
 trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
-
+PJ=.
 CPATH=classes
 CPATH=$CPATH:lib/joda-time-2.8.1.jar
 CPATH=$CPATH:lib/commons-logging-1.1.3.jar 
-CPATH=classes
+CPATH=
 JAVAPATH=java 
 JAVAPATH=/home/mestes/jdk-11.0.2/bin/java 
 JAVACPATH=javac 
@@ -17,47 +17,49 @@ RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"
 QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
 help() {
                           print "\n"
-                          print "  (f)ile (e)dit (n)ew (b)lank (c)ompile (d)ebug (r)un (l)ist (j)avadoc (h)elp" 
+                          print "Usage: figg [-i] [-p] [-h]"
+                          print "       -i <class name>   - Enters interactive mode"
+                          print "       -p <project name> - Designate project (project folder)"
+                          print "       -h  display usage\n"
+                          print "       Interactive mode commands"
+                          print "          f <class name>    - change the current source file" 
+                          print "          n <class name>    - create new file <project name>/src/<class name>.java"
+                          print "          e                 - edit (vim) <project name>/src/<class name>.java"
+                          print "          cat               - cat <project name>/src/<class name>.java"
+                          print "          ls                - ls <project name>/src"
+                          print "          c                 - compile <project name>/src/<class name>.java"
+                          print "          r                 - run <project name>/classes/<class name>.class"
+                          print "          R                 - run <project name>/classes/<class name>.class in split window"
+                          print "          j                 - generate and display javadoc <project name>/classes/<class name>.java"
                           print "\n"
-                          print "          f <source file name>      - Change the current source file" 
-                          print "          e                         - Edit current source file" 
-                          print "          c                         - Compile current source file" 
-                          print "          d                         - Edit source file and listing file" 
-                          print "          r                         - Run (no split window)" 
-                          print "          R                         - Run in split window" 
-                          print "          l                         - list source file to screen" 
-                          print "          j                         - Generate and display Javadoc" 
-                          print "          n                         - New source file using template" 
-                          print "          b                         - New blank source file" 
-                          print "\n"
-                          print "          q                         - Quit" 
-                          print "          h                         - Help" 
-                          print "\n"
-                          print "\n"
-
-                          print "Current source file is "$JF"\n" 
+                          print "          q                 - Quit" 
+                          print "          h                 - Help\n" 
+                          print "Current source file is $PJ/src/$JF" 
                           print "Current command line classpath is" 
                           print $CPATH
-                          print "" 
                           javac -version
                           java -version
-                          print "$JAVACPATH $XLINTS -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst" >&2
-                          print "$JAVAPATH/java -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7" >&2
+                          compile $JF 0
+                          run 0 $JF
                           print "\n" 
 }
 run() {
-               print "$JAVAPATH/java -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7" >&2
-               $JAVAPATH -cp $CPATH -ea $1 $2 $3 $4 $5 $6 $7
+               print "$JAVAPATH -cp $PJ/classes:$CPATH -ea $2 $3 $4 $5 $6 $7" >&2
+               if [[ $1 != "0" ]]; then
+                      $JAVAPATH -cp $PJ/classes:$CPATH -ea $2 $3 $4 $5 $6 $7
+               fi
 }
 compile() {
                JF=$1
-               rm -f tmp/$JF.lst >/dev/null 2>&1
-               print "$JAVACPATH $XLINTS -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst" >&2
-               $JAVACPATH $XLINTS -cp $CPATH -d classes src/$JF.java 2> tmp/$JF.lst
+               print "$JAVACPATH $XLINTS -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> tmp/$JF.lst" >&2
+               if [[ $2 -gt 0 ]]; then
+                    rm -f tmp/$JF.lst >/dev/null 2>&1
+                    $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> tmp/$JF.lst
+               fi
 }
 compileDebug() {
                JF=$1
-               compile $JF
+               compile $JF 1
                if [[ $? -ne 0 ]]; then
                          print "Listing"
                          cp tmp/$JF.lst last.lst 
@@ -76,12 +78,14 @@ compileDebug() {
 Interactive() {
                 while [[ "$cmd" != "q" ]]
                 do
-                     print -n "figg/$JF >> ";read var;set -A arr $var;
+                     print -n "figg/$PJ/$JF >> ";read var;set -A arr $var;
                      cmd=${arr[0]};
 	             case $cmd  in
                        x) cmd="q" ;;
+                       p) PJ=${arr[1]} ;;
+                       cd) PJ=${arr[1]} ;;
                        f) JF=${arr[1]} ;;
-                       s) cat src/$JF.java ;;
+                       cat) cat $PJ/src/$JF.java ;;
                        v) vim ~/.vimrc ;;
                        ff) vim figg ;;
 
@@ -89,19 +93,21 @@ Interactive() {
                           figg -n $JF ;;
                        b) JF=${arr[1]}
                           figg -b $JF ;;
-                       e) figg -e $JF ;;
+                       e) figg -p $PJ -e $JF ;;
                        a) figg -a $JF ;;
-                       c) figg -c $JF ;;
+                       c) figg -p $PJ -c $JF ;;
+                       r) figg -p $PJ -r $JF $1 $2 $3 $4 $5 $6;;
+                       R) figg -p $PJ -R $JF $1 $2 $3 $4 $5 $6;;
+                       j) figg -p $PJ -j $JF ;;
+
                        t) figg -t $JF ;;
                        d) figg -d $JF ;;
-                       j) figg -j $JF ;;
-                       r) figg -r $JF $1 $2 $3 $4 $5 $6;;
-                       R) figg -R $JF $1 $2 $3 $4 $5 $6;;
                        y) figg -y ;;
                        l) figg -l ;;
-                       ls) figg -l ;;
+                       pls) ls -l . ;;
+                       ls) figg -p $PJ -l ;;
                        reset)
-                           rm -f classes/*.class  >/dev/null 2>&1
+                           rm -f $PJ/classes/*.class  >/dev/null 2>&1
                            ;;
                        h) help
                           ;;
@@ -113,14 +119,20 @@ Interactive() {
 	             esac
                 done
 }
-while getopts "b:t:n:d:c:r:R:a:e:i:lxvj" arg
+NOARG="1"
+while getopts "p:b:t:n:d:c:r:R:a:e:i:lxvj:" arg
 do
+        NOARG="0"
 	case $arg in
+            p) PJ=$OPTARG
+               ;;
             i)  
-                JF=$OPTARG 
-                JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
-                if [ ! -e "src/$JF.java" ]; then
-                    print "Error: src/$JF.java does not exist"
+                # JF=$OPTARG 
+                PJ=`echo $OPTARG | gawk -v out="." -F / '/[/]/{out=$1;} END{print out}'`
+                JF=`echo $OPTARG | gawk -v out="." -F / '{ if ( $0 ~ /[/]/ ) print $2; else print $1;}'`
+                # JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+                if [ ! -e "$PJ/src/$JF.java" ]; then
+                    print "Error: $PJ/src/$JF.java does not exist"
                     exit 1
                 fi
 
@@ -128,61 +140,79 @@ do
                 Interactive
 
                ;;
-            c) compileDebug $OPTARG 
+            c) compileDebug $OPTARG 1 
                ;;
             n) JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                shift $(($OPTIND - 1))
-               if [ ! -e "src/$JF.java" ]; then
+               if [ ! -e "$PJ/src/$JF.java" ]; then
                     cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
-                    cp $Tmp src/$JF.java
-                    vim src/$JF.java
+                    cp $Tmp $PJ/src/$JF.java
+                    vim $PJ/src/$JF.java
                else
-                    print "Error: src/$JF.java already exists"
+                    print "Error: $PJ/src/$JF.java already exists"
                fi
                ;;
             b) JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                shift $(($OPTIND - 1))
                if [ ! -e "src/$JF.java" ]; then
-                    touch $Tmp src/$JF.java
-                    vim src/$JF.java
+                    touch $Tmp $PJ/src/$JF.java
+                    vim $PJ/src/$JF.java
                else
-                    print "Error: src/$JF.java already exists"
+                    print "Error: $PJ/src/$JF.java already exists"
                fi
                ;;
             d) JF=$OPTARG 
                shift $(($OPTIND - 1))
-               vim -o tmp/$JF.lst src/$JF.java
+               vim -o tmp/$JF.lst $PJ/src/$JF.java
                ;;
             y) 
                print "Compile All"
                for file in src/*.java; do
                    JF=`echo $file | gawk '{gsub(/[.]java$/,"",$0);gsub(/^src[/]/,"",$0);print $0;}'`
                    print $JF
-                   compile $JF
+                   compile $JF 1
                 done 
                ;;
             R) JF=$OPTARG 
                shift $(($OPTIND - 1))
                rm -f $Tmp >/dev/null 2>&1
-               run -ea $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
-               vim -c "wincmd w | vert resize $RUNHWIDTH | wincmd w" -O src/$JF.java $Tmp
+               run 1 $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
+               vim -c "wincmd w | vert resize $RUNHWIDTH | wincmd w" -O $PJ/src/$JF.java $Tmp
                ;;
             r) JF=$OPTARG 
                shift $(($OPTIND - 1))
-               run $JF $1 $2 $3 $4 $5 $6
+               run 1 $JF $1 $2 $3 $4 $5 $6
                ;;
             a) JF=$OPTARG 
                shift $(($OPTIND - 1))
-               compile $JF
-               #run $JF $1 $2 $3 $4 $5 $6
+               compile $JF 1
                ;;
             e) JF=$OPTARG 
-               vim src/$JF.java
+               vim $PJ/src/$JF.java
                ;;
-            l) ls src
+            l) 
+               print "\n"
+               print "Project: "$PJ
+               print "=========================================="
+               print "\n"
+               print $PJ/src
+               print "------------------------------------------"
+               ls -l $PJ/src
+               print "\n"
+               print $PJ/classes
+               print "------------------------------------------"
+               ls -l $PJ/classes
+               print "\n"
+               date
+               compile $JF 0
+               run 0 $JF
+               print "\n"
                ;;
-            j) javadoc -d doc src/*.java
-               xdg-open  "doc/index.html" >/dev/null 2>&1
+            j) 
+               JF=$OPTARG 
+               rm -rf $PJ/doc/index.html >/dev/null 2>&1
+               javadoc -d doc $PJ/src/$JF.java
+               xdg-open  "$PJ/doc/index.html" >/dev/null 2>&1
                ;;
             v) java  -version
                ;;
@@ -190,4 +220,6 @@ do
 	esac
 done
 
-
+if [[ "$NOARG" = "1" ]]; then
+     Interactive
+fi
