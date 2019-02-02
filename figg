@@ -4,6 +4,7 @@ TmpDir="/tmp/dir$$"
 trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 PJ=.
+JF=Main
 CPATH=classes
 CPATH=$CPATH:lib/joda-time-2.8.1.jar
 CPATH=$CPATH:lib/commons-logging-1.1.3.jar 
@@ -16,37 +17,64 @@ XLINTS="-Xlint:-deprecation -Xlint:-rawtypes"
 RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
 QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
 help() {
-                          print "\n"
-                          print "Usage: figg [-i] [-p] [-h]"
-                          print "       -i <class name>   - Enters interactive mode"
-                          print "       -p <project name> - Designate project (project folder)"
-                          print "       -h  display usage\n"
-                          print "       Interactive mode commands"
-                          print "          f <class name>    - change the current source file" 
-                          print "          n <class name>    - create new file <project name>/src/<class name>.java"
-                          print "          np <project name> - new project (project folder with sub folders)"
-                          print "          e                 - edit (vim) <project name>/src/<class name>.java"
-                          print "          cat               - cat <project name>/src/<class name>.java"
-                          print "          ls                - ls <project name>/src"
-                          print "          c                 - compile <project name>/src/<class name>.java"
-                          print "          r                 - run <project name>/classes/<class name>.class"
-                          print "          R                 - run <project name>/classes/<class name>.class in split window"
-                          print "          j                 - generate and display javadoc <project name>/classes/<class name>.java"
-                          print "\n"
-                          print "          q                 - Quit" 
-                          print "          h                 - Help\n" 
-                          print "Current source file is $PJ/src/$JF" 
-                          print "Current command line classpath is" 
-                          print $CPATH
-                          javac -version
-                          java -version
-                          compile $JF 0
-                          run 0 $JF
-                          print "\n" 
+                   print "\n"
+                   print "Usage:         figg [-i] [-p] [-h]"
+                   print "               -i [<project-name>/]<class-name>        - enters interactive mode"
+                   print "               -p <project-name>                       - select project (project folder)"
+                   print "               -h                                      - display usage\n"
+                   print "Typical uses:  figg                                    - enters interactive mode (project == . and class-name == Main>"
+                   print "               figg -i <class-name>                    - enters interactive mode (project == . and class-name == <class-name>"
+                   print "               figg -i <project-name>/<class-name>     - enters interactive mode (project == <project-name> & class-name == <class-name>"
+                   print "               figg -p <project-name> -i <class-name>  - enters interactive mode (project == <project-name> & class-name == <class-name>"
+                   print "\n"
+                   print "Notes:         Default project name is "." (the current directory)"
+                   print "\n"
+
+
+                   print "Interactive mode commands"
+                   print "               f <class-name>    - change the current class" 
+                   print "               n <class-name>    - create new file <project-name>/src/<class-name>.java"
+                   print "               p <project-name>  - change the current project"
+                   print "               np <project-name> - new project (project folder with sub folders)"
+                   print "               e                 - edit (vim) <project-name>/src/<class-name>.java"
+                   print "               cat               - cat <project-name>/src/<class-name>.java"
+                   print "               reset             - deletes all class for the current project"
+                   print "               ls                - ls <project-name>/src"
+                   print "               c                 - compile <project-name>/src/<class-name>.java"
+                   print "               r                 - run <project-name>/classes/<class-name>.class"
+                   print "               R                 - run <project-name>/classes/<class-name>.class in split window"
+                   print "               j                 - generate and display javadoc <project-name>/classes/<class-name>.java"
+                   print "\n"
+                   print "               q                 - quit" 
+                   print "               h                 - help\n" 
+                   print "Current source file is $PJ/src/$JF" 
+                   print "Current command line classpath is" 
+                   print $CPATH
+                   javac -version
+                   java -version
+                   compile $JF 0
+                   run 0 $JF
+                   print "\n" 
+}
+resetmain() {
+               JF="Main"
+               cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+               cp $Tmp $PJ/src/$JF.java
 }
 newproject() {
+          if [ ! -d "$PJ" ]; then
                mkdir -p $PJ/classes
                mkdir -p $PJ/src
+               mkdir -p $PJ/lib
+               mkdir -p $PJ/tmp
+               JF="Main"
+               cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+               cp $Tmp $PJ/src/$JF.java
+          else
+              print "Error: Project $PJ already exists (reset to default project and class)"
+              JF="Main"
+              PJ="."
+          fi
 }
 run() {
                print "$JAVAPATH -cp $PJ/classes:$CPATH -ea $2 $3 $4 $5 $6 $7" >&2
@@ -92,6 +120,7 @@ Interactive() {
                        f) JF=${arr[1]} ;;
                        cat) cat $PJ/src/$JF.java ;;
                        v) vim ~/.vimrc ;;
+                       resetmain) resetmain ;;
                        ff) vim figg ;;
                        np) PJ=${arr[1]}
                            newproject 
@@ -127,10 +156,12 @@ Interactive() {
                 done
 }
 NOARG="1"
-while getopts "p:b:t:n:d:c:r:R:a:e:i:lxvj:" arg
+while getopts "p:b:t:n:d:c:r:R:a:e:i:lxvhj:" arg
 do
         NOARG="0"
 	case $arg in
+            h) help
+               ;;
             p) PJ=$OPTARG
                ;;
             i)  
