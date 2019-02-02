@@ -24,6 +24,7 @@ help() {
                           print "       Interactive mode commands"
                           print "          f <class name>    - change the current source file" 
                           print "          n <class name>    - create new file <project name>/src/<class name>.java"
+                          print "          np <project name> - new project (project folder with sub folders)"
                           print "          e                 - edit (vim) <project name>/src/<class name>.java"
                           print "          cat               - cat <project name>/src/<class name>.java"
                           print "          ls                - ls <project name>/src"
@@ -42,6 +43,10 @@ help() {
                           compile $JF 0
                           run 0 $JF
                           print "\n" 
+}
+newproject() {
+               mkdir -p $PJ/classes
+               mkdir -p $PJ/src
 }
 run() {
                print "$JAVAPATH -cp $PJ/classes:$CPATH -ea $2 $3 $4 $5 $6 $7" >&2
@@ -88,7 +93,9 @@ Interactive() {
                        cat) cat $PJ/src/$JF.java ;;
                        v) vim ~/.vimrc ;;
                        ff) vim figg ;;
-
+                       np) PJ=${arr[1]}
+                           newproject 
+                           ls $PJ ;;
                        n) JF=${arr[1]}
                           figg -n $JF ;;
                        b) JF=${arr[1]}
