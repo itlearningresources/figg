@@ -3,17 +3,19 @@ Tmp="/tmp/$$"
 TmpDir="/tmp/dir$$"
 trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
-PJ=.
+
+PJ=Main
 JF=Main
-CPATH=classes
-CPATH=$CPATH:lib/joda-time-2.8.1.jar
-CPATH=$CPATH:lib/commons-logging-1.1.3.jar 
+
+# CPATH=$CPATH:lib/joda-time-2.8.1.jar
+# CPATH=$CPATH:lib/commons-logging-1.1.3.jar 
 CPATH=
-JAVAPATH=java 
+
 JAVAPATH=/home/mestes/jdk-11.0.2/bin/java 
-JAVACPATH=javac 
 JAVACPATH=/home/mestes/jdk-11.0.2/bin/javac 
+
 XLINTS="-Xlint:-deprecation -Xlint:-rawtypes"
+
 RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
 QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
 help() {
@@ -58,7 +60,7 @@ help() {
 }
 resetmain() {
                JF="Main"
-               cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+               cat Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
                cp $Tmp $PJ/src/$JF.java
 }
 newproject() {
@@ -68,7 +70,7 @@ newproject() {
                mkdir -p $PJ/lib
                mkdir -p $PJ/tmp
                JF="Main"
-               cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+               cat Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
                cp $Tmp $PJ/src/$JF.java
           else
               print "Error: Project $PJ already exists (reset to default project and class)"
@@ -135,11 +137,17 @@ Interactive() {
                        r) figg -p $PJ -r $JF $1 $2 $3 $4 $5 $6;;
                        R) figg -p $PJ -R $JF $1 $2 $3 $4 $5 $6;;
                        j) figg -p $PJ -j $JF ;;
-
                        t) figg -t $JF ;;
                        d) figg -d $JF ;;
                        y) figg -y ;;
                        l) figg -l ;;
+                       archive) 
+                           DSTAMP=`date '+%F_%H%M%S' | sed 's/-//g'` 
+                           tar -cvf "archives/${PJ}__${DSTAMP}.tar" $PJ
+                           ls -l archives
+                           ;;
+                       archivels) 
+                           ls -l archives ;;
                        pls) ls -l . ;;
                        ls) figg -p $PJ -l ;;
                        reset)
@@ -183,7 +191,7 @@ do
             n) JF=`echo $OPTARG | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                shift $(($OPTIND - 1))
                if [ ! -e "$PJ/src/$JF.java" ]; then
-                    cat src/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+                    cat Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
                     cp $Tmp $PJ/src/$JF.java
                     vim $PJ/src/$JF.java
                else
