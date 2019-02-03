@@ -4,14 +4,41 @@ TmpDir="/tmp/dir$$"
 trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 
+if [[ -z "${FIGGHOME}" ]]; then
+      print "Environemnt variable \"FIGGHOME\" is undefined"
+      exit 1
+fi
+
+confirm() {
+     if [ "$FORCE" != "yes" ] ; then
+          print    " Creating project \"$1\""
+          print -n "   Enter '10111' to confirm >> "
+          read STRIN
+          if [ "$STRIN" != "10111" ] ; then
+               print "   Exiting - No Match"
+               exit 1
+          fi
+     fi
+}
+projectorg() {
+               print -R "Project directory organization"   
+               print -R "  ./"
+               print -R "   |--/<project name>"
+               print -R "      |--/src"
+               print -R "      |--/classes"
+               print -R "      |--/lib"
+               print -R "      |--/tmp"
+               print ""   
+}
 makeproject() {
           if [ ! -d "$PJ" ]; then
-               mkdir -p $PJ/classes
+               confirm "$PJ"
                mkdir -p $PJ/src
+               mkdir -p $PJ/classes
                mkdir -p $PJ/lib
                mkdir -p $PJ/tmp
                JF="Main"
-               cat Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+               cat $FIGGHOME/templates/Template.txt | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
                cp $Tmp $PJ/src/$JF.java
           fi
 }
@@ -28,8 +55,8 @@ JAVACPATH=/home/mestes/jdk-11.0.2/bin/javac
 
 XLINTS="-Xlint:-deprecation -Xlint:-rawtypes"
 
-RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
-QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' .figg`
+RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
+QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12 -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
 help() {
                    print "\n"
                    print "Usage:         figg [-i] [-p] [-h]"
@@ -61,6 +88,8 @@ help() {
                    print "\n"
                    print "               q                 - quit" 
                    print "               h                 - help\n" 
+                   projectorg
+                   print "\$FIGGHOME is $FIGGHOME"
                    print "Current source file is $PJ/src/$JF" 
                    print "Current command line classpath is" 
                    print $CPATH
@@ -92,10 +121,10 @@ run() {
 }
 compile() {
                JF=$1
-               print "$JAVACPATH $XLINTS -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> tmp/$JF.lst" >&2
+               print "$JAVACPATH $XLINTS -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> $PJ/tmp/$JF.lst" >&2
                if [[ $2 -gt 0 ]]; then
                     rm -f tmp/$JF.lst >/dev/null 2>&1
-                    $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> tmp/$JF.lst
+                    $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> $PJ/tmp/$JF.lst
                fi
 }
 compileDebug() {
@@ -103,15 +132,15 @@ compileDebug() {
                compile $JF 1
                if [[ $? -ne 0 ]]; then
                          print "Listing"
-                         cp tmp/$JF.lst last.lst 
-                         # vi src/$JF.java tmp/$JF.lst
+                         cp $PJ/tmp/$JF.lst last.lst 
+                         # vi src/$JF.java $PJ/tmp/$JF.lst
                          # vim quickfix stuff
                          # :copen " Open the quickfix window
                          # :ccl   " Close it
                          # :cw    " Open it if there are "errors", close it otherwise (some people prefer this)
                          # :cn    " Go to the next error in the window
                          # :cnf   " Go to the first error in the next file
-                         vim -c "cw" -c "resize $QFIXWIDTH" -c "map <F1> :cn<cr><cr>" -c "map <F2> :cp<cr><cr>" -q tmp/$JF.lst
+                         vim -c "cw" -c "resize $QFIXWIDTH" -c "map <F1> :cn<cr><cr>" -c "map <F2> :cp<cr><cr>" -q $PJ/tmp/$JF.lst
                else
                     print "Compile OK" >&2
                fi
@@ -123,6 +152,7 @@ Interactive() {
                      cmd=${arr[0]};
 	             case $cmd  in
                        x) cmd="q" ;;
+                       e) vim $PJ/src/$JF.java ;;
                        p) 
                           if [ -d "./${arr[1]}" ]; then
                                PJ=${arr[1]} 
@@ -143,7 +173,6 @@ Interactive() {
                           figg -n $JF ;;
                        b) JF=${arr[1]}
                           figg -b $JF ;;
-                       e) figg -p $PJ -e $JF ;;
                        a) figg -a $JF ;;
                        c) figg -p $PJ -c $JF ;;
                        r) figg -p $PJ -r $JF $1 $2 $3 $4 $5 $6;;
@@ -153,13 +182,24 @@ Interactive() {
                        d) figg -d $JF ;;
                        y) figg -y ;;
                        l) figg -l ;;
+                       archiveall) 
+                           DSTAMP=`date '+%F_%H%M%S' | sed 's/-//g'` 
+                           tar --exclude=$FIGGHOME/archives -cvf "$FIGGHOME/archives/figghome${DSTAMP}.tar" $FIGGHOME 
+                           ls -lh "$FIGGHOME/archives/figghome${DSTAMP}.tar"
+                           gzip "$FIGGHOME/archives/figghome${DSTAMP}.tar"
+                           ls -lh "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz"
+                           uuencode "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz"   \
+                                    "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz" > \
+                                    "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz.uu.txt"
+                           ls -lh "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz.uu.txt"
+                           ;;
                        archive) 
                            DSTAMP=`date '+%F_%H%M%S' | sed 's/-//g'` 
-                           tar -cvf "archives/${PJ}__${DSTAMP}.tar" $PJ
-                           ls -l archives
+                           tar -cvf "$FIGGHOME/archives/${PJ}__${DSTAMP}.tar" $PJ
+                           ls -l $FIGGHOME/archives
                            ;;
                        archivels) 
-                           ls -l archives ;;
+                           ls -l $FIGGHOME/archives ;;
                        pls) ls -l . ;;
                        ls) figg -p $PJ -l ;;
                        reset)
@@ -221,7 +261,7 @@ do
                ;;
             d) JF=$OPTARG 
                shift $(($OPTIND - 1))
-               vim -o tmp/$JF.lst $PJ/src/$JF.java
+               vim -o $PJ/tmp/$JF.lst $PJ/src/$JF.java
                ;;
             y) 
                print "Compile All"
@@ -244,9 +284,6 @@ do
             a) JF=$OPTARG 
                shift $(($OPTIND - 1))
                compile $JF 1
-               ;;
-            e) JF=$OPTARG 
-               vim $PJ/src/$JF.java
                ;;
             l) 
                print "\n"
