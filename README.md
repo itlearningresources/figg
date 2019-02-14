@@ -1,3 +1,5 @@
+## FIGG - A command line java development environment
+<pre>
 
 
 figg - a command line java development environment
@@ -43,3 +45,4 @@ Project directory organization
              |--/doc
              |--/tmp
 
+</pre>
