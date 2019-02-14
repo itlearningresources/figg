@@ -4,6 +4,13 @@ TmpDir="/tmp/dir$$"
 trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 
+if [ ! -a ~/.figg ]; then
+
+      print "~/.figg does not exist"
+      print "example .figg in git repo (you must modify it to suit your specifics)"
+      exit 1
+fi
+
 FIGGHOME=`gawk -v        w=FIGGHOME -v v="" -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
 FIGGPROJECTSHOME=`gawk -v w=FIGGPROJECTSHOME -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
 JAVAPATH=`gawk  -v w=JAVAPATH  -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`

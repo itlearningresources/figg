@@ -1,0 +1,12 @@
+FIGGHOME=/home/<EXAMPLE-USER>/scm/figg
+FIGGPROJECTSHOME=/home/<EXAMPLE-USER>/scm/figg/projects
+
+RUNHWIDTH=32
+QFIXWIDTH=12
+
+
+XLINTS=-Xlint:-deprecation -Xlint:-rawtypes
+
+
+JAVAPATH=/home/<EXAMPLE-USER>/jdk-11.0.2/bin/java 
+JAVACPATH=/home/<EXAMPLE-USER>/jdk-11.0.2/bin/javac 
