@@ -44,13 +44,25 @@ confirm() {
           fi
      fi
 }
+projectorgnodetails() {
+     print -R "Project directory organization"   
+     print -R "          <FIGGPROJECTSHOME>"
+     print -R "          |--/<PROJECT>"
+     print -R "             |--/src"
+     print -R "                |--/<SourceFile>.java"
+     print -R "             |--/classes"
+     print -R "             |--/lib"
+     print -R "             |--/doc"
+     print -R "             |--/tmp"
+     print ""   
+}
 projectorgdetail() {
      print -R "Project directory organization"   
      print -R "          $FIGGPROJECTSHOME"
      print -R "          |--/$PJ"
      print -R "             |--/src"
      ls  $FIGGPROJECTSHOME/$PJ/src | gawk '{
-                  print "                |--/" $0
+           print "                |--/" $0
      }'
      print -R "             |--/classes"
      print -R "             |--/lib"
@@ -102,7 +114,9 @@ makeproject
 CPATH=
 
 
-help() {
+figghelp() {
+                   print "\n"
+                   print "figg - a command line java development environment"
                    print "\n"
                    print "Usage:         figg [-i] [-p] [-l] [-h]"
                    print "               -i [<project-name>/]<class-name>        - enters interactive mode"
@@ -114,9 +128,6 @@ help() {
                    print "               figg -i <project-name>/<class-name>     - enters interactive mode (project == <project-name> & class-name == <class-name>"
                    print "               figg -p <project-name> -i <class-name>  - enters interactive mode (project == <project-name> & class-name == <class-name>"
                    print "\n"
-                   print "Notes:         Default project name is "." (the current directory)"
-                   print "\n"
-
 
                    print "Interactive mode commands"
                    print "               f <class-name>    - change the current class" 
@@ -134,7 +145,10 @@ help() {
                    print "\n"
                    print "               q                 - quit" 
                    print "               h                 - help\n" 
-                   projectorg
+                   projectorgnodetails
+}
+help() {
+                   figghelp
                    print "\$FIGGHOME is $FIGGHOME"
                    print "Current source file is $PJ/src/$JF" 
                    print "Current command line classpath is" 
@@ -322,10 +336,12 @@ Interactive() {
                 done
 }
 NOARG="1"
-while getopts "hp:i:lx" arg
+while getopts "hjp:i:lx" arg
 do
         NOARG="0"
 	case $arg in
+            j) figghelp
+               ;;
             h) help
                ;;
             p) PJ=$OPTARG
