@@ -7,6 +7,7 @@ figg - a command line java development environment
 
 
 Usage:         figg [-i] [-p] [-l] [-h]
+               - &gtproject-name
                -i [<gtproject-name>/]<gtclass-name>        - enters interactive mode (i-mode)
                -p <gtproject-name>                       - select project (project folder)
                -l                                      - list project folder

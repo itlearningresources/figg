@@ -119,6 +119,7 @@ figghelp() {
                    print "figg - a command line java development environment"
                    print "\n"
                    print "Usage:         figg [-i] [-p] [-l] [-h]"
+                   print "               - &gtproject-name"
                    print "               -i [<project-name>/]<class-name>        - enters interactive mode (i-mode)"
                    print "               -p <project-name>                       - select project (project folder)"
                    print "               -l                                      - list project folder"
