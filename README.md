@@ -3,48 +3,48 @@
 <code>
 
 
-figg - a command line java development environment
+gtfigg - gta gtcommand gtline gtjava gtdevelopment gtenvironment
 
 
-Usage:         figg [-i] [-p] [-l] [-h]
-               -i [<project-name>/]<class-name>        - enters interactive mode (i-mode)
-               -p <project-name>                       - select project (project folder)
-               -l                                      - list project folder
-               -h                                      - display usage
+gtUsage:         gtfigg [-gti] [-gtp] [-gtl] [-gth]
+               -gti [<gtproject-gtname>/]<gtclass-gtname>        - gtenters gtinteractive gtmode (gti-gtmode)
+               -gtp <gtproject-gtname>                       - gtselect gtproject (gtproject gtfolder)
+               -gtl                                      - gtlist gtproject gtfolder
+               -gth                                      - gtdisplay gtusage
 
-Typical uses:  figg                                    - enters i-mode (project == . and class-name == Main>
-               figg -i <class-name>                    - enters i-mode (project == . and class-name == <class-name>
-               figg -i <project-name>/<class-name>     - enters i-mode (project == <project-name> & class-name == <class-name>
-               figg -p <project-name> -i <class-name>  - enters i-mode (project == <project-name> & class-name == <class-name>
-
-
-Interactive mode commands
-               f <class-name>    - change the current class
-               n <class-name>    - create new file <project-name>/src/<class-name>.java
-               p <project-name>  - change the current project
-               np <project-name> - new project (project folder with sub folders)
-               e                 - edit (vim) <project-name>/src/<class-name>.java
-               cat               - cat <project-name>/src/<class-name>.java
-               reset             - deletes all class for the current project
-               ls                - ls <project-name>/src
-               c                 - compile <project-name>/src/<class-name>.java
-               r                 - run <project-name>/classes/<class-name>.class
-               R                 - run <project-name>/classes/<class-name>.class in split window
-               j                 - generate and display javadoc <project-name>/classes/<class-name>.java
+gtTypical gtuses:  gtfigg                                    - gtenters gti-gtmode (gtproject == . gtand gtclass-gtname == gtMain>
+               gtfigg -gti <gtclass-gtname>                    - gtenters gti-gtmode (gtproject == . gtand gtclass-gtname == <gtclass-gtname>
+               gtfigg -gti <gtproject-gtname>/<gtclass-gtname>     - gtenters gti-gtmode (gtproject == <gtproject-gtname> & gtclass-gtname == <gtclass-gtname>
+               gtfigg -gtp <gtproject-gtname> -gti <gtclass-gtname>  - gtenters gti-gtmode (gtproject == <gtproject-gtname> & gtclass-gtname == <gtclass-gtname>
 
 
-               q                 - quit
-               h                 - help
+gtInteractive gtmode gtcommands
+               gtf <gtclass-gtname>    - gtchange gtthe gtcurrent gtclass
+               gtn <gtclass-gtname>    - gtcreate gtnew gtfile <gtproject-gtname>/gtsrc/<gtclass-gtname>.gtjava
+               gtp <gtproject-gtname>  - gtchange gtthe gtcurrent gtproject
+               gtnp <gtproject-gtname> - gtnew gtproject (gtproject gtfolder gtwith gtsub gtfolders)
+               gte                 - gtedit (gtvim) <gtproject-gtname>/gtsrc/<gtclass-gtname>.gtjava
+               gtcat               - gtcat <gtproject-gtname>/gtsrc/<gtclass-gtname>.gtjava
+               gtreset             - gtdeletes gtall gtclass gtfor gtthe gtcurrent gtproject
+               gtls                - gtls <gtproject-gtname>/gtsrc
+               gtc                 - gtcompile <gtproject-gtname>/gtsrc/<gtclass-gtname>.gtjava
+               gtr                 - gtrun <gtproject-gtname>/gtclasses/<gtclass-gtname>.gtclass
+               gtR                 - gtrun <gtproject-gtname>/gtclasses/<gtclass-gtname>.gtclass gtin gtsplit gtwindow
+               gtj                 - gtgenerate gtand gtdisplay gtjavadoc <gtproject-gtname>/gtclasses/<gtclass-gtname>.gtjava
 
-Project directory organization
-          <FIGGPROJECTSHOME>
-          |--/<PROJECT>
-             |--/src
-                |--/<SourceFile>.java
-             |--/classes
-             |--/lib
-             |--/doc
-             |--/tmp
+
+               gtq                 - gtquit
+               gth                 - gthelp
+
+gtProject gtdirectory gtorganization
+          <gtFIGGPROJECTSHOME>
+          |--/<gtPROJECT>
+             |--/gtsrc
+                |--/<gtSourceFile>.gtjava
+             |--/gtclasses
+             |--/gtlib
+             |--/gtdoc
+             |--/gttmp
 
 </code>
 </pre>
