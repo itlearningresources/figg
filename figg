@@ -4,6 +4,15 @@ TmpDir="/tmp/dir$$"
 trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 
+FIGGHOME=`gawk -v        w=FIGGHOME -v v="" -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
+FIGGPROJECTSHOME=`gawk -v w=FIGGPROJECTSHOME -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
+JAVAPATH=`gawk  -v w=JAVAPATH  -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
+JAVACPATH=`gawk -v w=JAVACPATH -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
+XLINTS=`gawk    -v w=XLINTS    -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
+RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
+QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
+
+
 if [[ -z "${FIGGPROJECTSHOME}" ]]; then
       print "Environemnt variable \"FIGGPROJECTSHOME\" is undefined"
       exit 1
@@ -28,11 +37,26 @@ confirm() {
           fi
      fi
 }
+projectorgdetail() {
+     print -R "Project directory organization"   
+     print -R "          $FIGGPROJECTSHOME"
+     print -R "          |--/$PJ"
+     print -R "             |--/src"
+     ls  $FIGGPROJECTSHOME/$PJ/src | gawk '{
+                  print "                |--/" $0
+     }'
+     print -R "             |--/classes"
+     print -R "             |--/lib"
+     print -R "             |--/doc"
+     print -R "             |--/tmp"
+     print ""   
+}
 projectorg() {
      print -R "Project directory organization"   
      print -R "          $FIGGPROJECTSHOME"
-     print -R "          |--/<project name>"
+     print -R "          |--/$PJ"
      print -R "             |--/src"
+     print -R "                |--/$JF.java"
      print -R "             |--/classes"
      print -R "             |--/lib"
      print -R "             |--/doc"
@@ -71,11 +95,6 @@ makeproject
 CPATH=
 
 
-JAVAPATH=`gawk  -v w=JAVAPATH  -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
-JAVACPATH=`gawk -v w=JAVACPATH -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
-XLINTS=`gawk    -v w=XLINTS    -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
-RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
-QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
 help() {
                    print "\n"
                    print "Usage:         figg [-i] [-p] [-l] [-h]"
@@ -149,6 +168,19 @@ compile() {
           $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> $PJ/tmp/$JF.lst
      fi
 }
+compileRun() {
+     JF=$1
+     assertproject
+     print "$JAVACPATH $XLINTS -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> $PJ/tmp/$JF.lst" >&2
+     rm -f tmp/$JF.lst >/dev/null 2>&1
+     $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> $PJ/tmp/$JF.lst
+     if [[ $? -eq 0 ]]; then
+          print "$JAVAPATH -cp $PJ/classes:$CPATH -ea $JF" >&2
+          $JAVAPATH -cp $PJ/classes:$CPATH -ea $JF
+
+     fi
+}
+
 compileDebug() {
                JF=$1
                assertproject
@@ -225,6 +257,7 @@ Interactive() {
                                 vim $PJ/src/$JF.java
                            fi ;;
                        c)  compileDebug $JF 1 ;;
+                       g)  compileRun $JF  ;;
                        R)  rm -f $Tmp >/dev/null 2>&1
                            run 1 $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
                            vim -c "wincmd w | vert resize $RUNHWIDTH | wincmd w" -O $PJ/src/$JF.java $Tmp
