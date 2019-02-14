@@ -1,20 +1,21 @@
 ## FIGG - A command line java development environment
 <pre>
+<code>
 
 
 figg - a command line java development environment
 
 
 Usage:         figg [-i] [-p] [-l] [-h]
-               -i [<project-name>/]<class-name>        - enters interactive mode
+               -i [<project-name>/]<class-name>        - enters interactive mode (i-mode)
                -p <project-name>                       - select project (project folder)
                -l                                      - list project folder
                -h                                      - display usage
 
-Typical uses:  figg                                    - enters interactive mode (project == . and class-name == Main>
-               figg -i <class-name>                    - enters interactive mode (project == . and class-name == <class-name>
-               figg -i <project-name>/<class-name>     - enters interactive mode (project == <project-name> & class-name == <class-name>
-               figg -p <project-name> -i <class-name>  - enters interactive mode (project == <project-name> & class-name == <class-name>
+Typical uses:  figg                                    - enters i-mode (project == . and class-name == Main>
+               figg -i <class-name>                    - enters i-mode (project == . and class-name == <class-name>
+               figg -i <project-name>/<class-name>     - enters i-mode (project == <project-name> & class-name == <class-name>
+               figg -p <project-name> -i <class-name>  - enters i-mode (project == <project-name> & class-name == <class-name>
 
 
 Interactive mode commands
@@ -45,4 +46,5 @@ Project directory organization
              |--/doc
              |--/tmp
 
+</code>
 </pre>
