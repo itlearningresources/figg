@@ -87,6 +87,7 @@ assertproject() {
      mkdir -p $PJ/classes
      mkdir -p $PJ/lib
      mkdir -p $PJ/doc
+     mkdir -p $PJ/lst
      mkdir -p $PJ/tmp
 }
 makeproject() {
@@ -141,6 +142,8 @@ figghelp() {
                    print "               c                 - compile <project-name>/src/<class-name>.java"
                    print "               r                 - run <project-name>/classes/<class-name>.class"
                    print "               R                 - run <project-name>/classes/<class-name>.class in split window"
+                   print "               g                 - compile/runi/create listing for <project-name>/classes/<class-name>"
+                   print "               gg                - display last listing for  <project-name>/classes/<class-name>"
                    print "               j                 - generate and display javadoc <project-name>/classes/<class-name>.java"
                    print "\n"
                    print "               q                 - quit" 
@@ -205,17 +208,21 @@ compileRun() {
 compileRunList() {
      JF=$1
      assertproject
-     cat $PJ/src/$JF.java 2>>$Tmp >>&2
-     print "------------------------------------------------------------------------" 2>>$Tmp >>&2
-     print "------------------------------------------------------------------------" 2>>$Tmp >>&2
-     print "$JAVACPATH $XLINTS -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java" 2>>$Tmp >>&2
+     rm -f $Tmp >/dev/null 2>&1
+     date >> $Tmp 
+     print "---------------------------------------------------------------------------------------------------------------------------------------" >> $Tmp 
+     print "Source File: "$PJ/src/$JF.java >> $Tmp 
+     print "---------------------------------------------------------------------------------------------------------------------------------------" >> $Tmp 
+     cat $PJ/src/$JF.java >> $Tmp 
+     print "Compile--------------------------------------------------------------------------------------------------------------------------------" >> $Tmp 
+     print "$JAVACPATH $XLINTS -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java" >> $Tmp 
      rm -f tmp/$JF.lst >/dev/null 2>&1
-     $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2>>$Tmp >>&2
-     print "------------------------------------------------------------------------" 2>>$Tmp >>&2
-     print "------------------------------------------------------------------------" 2>>$Tmp >>&2
+     $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java >> $Tmp 
+
+     print "Run------------------------------------------------------------------------------------------------------------------------------------" >> $Tmp 
      if [[ $? -eq 0 ]]; then
-          print "$JAVAPATH -cp $PJ/classes:$CPATH -ea $JF" 2>>$Tmp >>&2
-          $JAVAPATH -cp $PJ/classes:$CPATH -ea $JF 2>>$Tmp >>&2
+          print "$JAVAPATH -cp $PJ/classes:$CPATH -ea $JF" >> $Tmp
+          $JAVAPATH -cp $PJ/classes:$CPATH -ea $JF >> $Tmp 
      fi
 }
 
@@ -296,8 +303,10 @@ Interactive() {
                            fi ;;
                        c)  compileDebug $JF 1 ;;
                        g)  compileRunList $JF 
-                           cat $Tmp 
-                          
+                           cat $Tmp
+                           cp $Tmp $PJ/lst/$JF.listing
+                           ;;
+                       gg) cat $PJ/lst/$JF.listing
                            ;;
                        R)  rm -f $Tmp >/dev/null 2>&1
                            run 1 $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
