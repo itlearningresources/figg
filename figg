@@ -189,6 +189,7 @@ compile() {
           $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2> $PJ/tmp/$JF.lst
      fi
 }
+
 compileRun() {
      JF=$1
      assertproject
@@ -198,7 +199,23 @@ compileRun() {
      if [[ $? -eq 0 ]]; then
           print "$JAVAPATH -cp $PJ/classes:$CPATH -ea $JF" >&2
           $JAVAPATH -cp $PJ/classes:$CPATH -ea $JF
+     fi
+}
 
+compileRunList() {
+     JF=$1
+     assertproject
+     cat $PJ/src/$JF.java 2>>$Tmp >>&2
+     print "------------------------------------------------------------------------" 2>>$Tmp >>&2
+     print "------------------------------------------------------------------------" 2>>$Tmp >>&2
+     print "$JAVACPATH $XLINTS -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java" 2>>$Tmp >>&2
+     rm -f tmp/$JF.lst >/dev/null 2>&1
+     $JAVACPATH $XLINTS   -cp $PJ/classes:$CPATH -d $PJ/classes $PJ/src/$JF.java 2>>$Tmp >>&2
+     print "------------------------------------------------------------------------" 2>>$Tmp >>&2
+     print "------------------------------------------------------------------------" 2>>$Tmp >>&2
+     if [[ $? -eq 0 ]]; then
+          print "$JAVAPATH -cp $PJ/classes:$CPATH -ea $JF" 2>>$Tmp >>&2
+          $JAVAPATH -cp $PJ/classes:$CPATH -ea $JF 2>>$Tmp >>&2
      fi
 }
 
@@ -278,7 +295,10 @@ Interactive() {
                                 vim $PJ/src/$JF.java
                            fi ;;
                        c)  compileDebug $JF 1 ;;
-                       g)  compileRun $JF  ;;
+                       g)  compileRunList $JF 
+                           cat $Tmp 
+                          
+                           ;;
                        R)  rm -f $Tmp >/dev/null 2>&1
                            run 1 $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
                            vim -c "wincmd w | vert resize $RUNHWIDTH | wincmd w" -O $PJ/src/$JF.java $Tmp
