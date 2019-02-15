@@ -53,6 +53,7 @@ projectorgnodetails() {
      print -R "             |--/classes"
      print -R "             |--/lib"
      print -R "             |--/doc"
+     print -R "             |--/lst"
      print -R "             |--/tmp"
      print ""   
 }
@@ -67,6 +68,7 @@ projectorgdetail() {
      print -R "             |--/classes"
      print -R "             |--/lib"
      print -R "             |--/doc"
+     print -R "             |--/lst"
      print -R "             |--/tmp"
      print ""   
 }
@@ -79,6 +81,7 @@ projectorg() {
      print -R "             |--/classes"
      print -R "             |--/lib"
      print -R "             |--/doc"
+     print -R "             |--/lst"
      print -R "             |--/tmp"
      print ""   
 }

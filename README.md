@@ -47,6 +47,7 @@ Project directory organization
              |--/classes
              |--/lib
              |--/doc
+             |--/lst
              |--/tmp
 
 </pre>
