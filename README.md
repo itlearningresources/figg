@@ -34,6 +34,8 @@ Interactive mode commands
                g                 - compile/runi/create listing for &ltproject-name&gt/classes/&ltclass-name&gt
                gg                - display last listing for  &ltproject-name&gt/classes/&ltclass-name&gt
                j                 - generate and display javadoc &ltproject-name&gt/classes/&ltclass-name&gt.java
+               lss               - list the src directory for &ltproject-name&gt
+               lst               - list the templates directory
 
 
                q                 - quit
@@ -41,6 +43,7 @@ Interactive mode commands
 
 Project directory organization
           &ltFIGGPROJECTSHOME&gt
+          |--/templates
           |--/&ltPROJECT&gt
              |--/src
                 |--/&ltSourceFile&gt.java

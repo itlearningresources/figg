@@ -8,6 +8,18 @@ if [ ! -a ~/.figg ]; then
 
       print "~/.figg does not exist"
       print "example .figg in git repo (you must modify it to suit your specifics)"
+
+      print "example ~/.figg content"
+      print "        FIGGHOME=/home/xxx/figg"
+      print "        FIGGPROJECTSHOME=/home/xxx/figg/projects"
+      print "        RUNHWIDTH=32"
+      print "        QFIXWIDTH=12"
+      print "        XLINTS=-Xlint:-deprecation -Xlint:-rawtypes"
+      print "        JAVAPATH=/home/xxx/jdk-11.0.2/bin/java "
+      print "        JAVACPATH=/home/xxx/jdk-11.0.2/bin/javac "
+
+
+
       exit 1
 fi
 
@@ -32,6 +44,11 @@ fi
 
 cd ${FIGGPROJECTSHOME}
 TEMPLATE=$FIGGHOME/templates/Template.txt
+QUICKCLASS=$FIGGHOME/templates/QuickClass.txt
+
+templateinstance() {
+     cat $TEMPLATE | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+}
 
 confirm() {
      if [ "$FORCE" != "yes" ] ; then
@@ -47,6 +64,7 @@ confirm() {
 projectorgnodetails() {
      print -R "Project directory organization"   
      print -R "          <FIGGPROJECTSHOME>"
+     print -R "          |--/templates"
      print -R "          |--/<PROJECT>"
      print -R "             |--/src"
      print -R "                |--/<SourceFile>.java"
@@ -60,6 +78,7 @@ projectorgnodetails() {
 projectorgdetail() {
      print -R "Project directory organization"   
      print -R "          $FIGGPROJECTSHOME"
+     print -R "          |--/templates"
      print -R "          |--/$PJ"
      print -R "             |--/src"
      ls  $FIGGPROJECTSHOME/$PJ/src | gawk '{
@@ -75,6 +94,7 @@ projectorgdetail() {
 projectorg() {
      print -R "Project directory organization"   
      print -R "          $FIGGPROJECTSHOME"
+     print -R "          |--/templates"
      print -R "          |--/$PJ"
      print -R "             |--/src"
      print -R "                |--/$JF.java"
@@ -148,6 +168,8 @@ figghelp() {
                    print "               g                 - compile/runi/create listing for <project-name>/classes/<class-name>"
                    print "               gg                - display last listing for  <project-name>/classes/<class-name>"
                    print "               j                 - generate and display javadoc <project-name>/classes/<class-name>.java"
+                   print "               lss               - list the src directory for <project-name>"
+                   print "               lst               - list the templates directory"
                    print "\n"
                    print "               q                 - quit" 
                    print "               h                 - help\n" 
@@ -251,6 +273,13 @@ Interactive() {
                 while [[ "$cmd" != "q" ]]
                 do
                      print -n "figg/$PJ/$JF >> ";read var;set -A arr $var;
+                     DSTAMP=`date '+%F_%H%M%S' | sed 's/-//g'` 
+                     cp $PJ/src/$JF.java "$FIGGHOME/archives/JF_${PJ}_${JF}_${DSTAMP}.java"
+                     cp $PJ/src/$JF.java "$FIGGHOME/archives/JF_${DSTAMP}_${PJ}_${JF}.java"
+                     rm `ls -t  $FIGGHOME/archives/JF_*_${PJ}_${JF}.java | gawk 'NR>16'`
+                     # ls -t JF*  | gawk 'NR<5'
+
+
                      cmd=${arr[0]};
 	             case $cmd in
                                  nc)   cmd="n" ;;
@@ -264,7 +293,7 @@ Interactive() {
                        x)   cmd="q" ;;
                        tmp) cp $PJ/src/$JF.java  /tmp ;;
                        e)   vim $PJ/src/$JF.java ;;
-                       et)  vim $TEMPLATE ;;
+                       et)  vim $FIGGHOME/templates/${arr[1]}.txt ;;
                        p)   if [ -d "./${arr[1]}" ]; then
                                  PJ=${arr[1]} 
                             else
@@ -280,6 +309,29 @@ Interactive() {
                                  newproject 
                                  ls $PJ 
                             fi ;;
+                       sa)  SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+                            SZ=`cap $SZ`
+                            if [[ ! -z "$PJ/src/$SZ.java" ]]; then
+                                 cp "$PJ/src/$JF.java" "$PJ/src/$SZ.java"
+                                 JF=$SZ
+                            else
+                                 print "Error: $PJ/src/$SZ.java already exists"
+                            fi
+                            ;;
+                       eq)  vim $QUICKCLASS
+                            ;;
+                       t)   print "Initializing \"QuickClass\" Class"
+                            echo "enter 'yes' to proceed?"
+                            read  answer
+                            case $answer in
+                                 yes|Yes|YES|y)
+                                      JF="QuickClass"
+                                      rm -rf "$PJ/src/$JF.java" >/dev/null 2>&1
+                                      cat $QUICKCLASS | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+                                      cp $Tmp $PJ/src/$JF.java
+                                      vim $PJ/src/$JF.java
+                            esac
+                            ;;
                        n)   SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                             SZ=`cap $SZ`
                             if [[ ! -z "${SZ}" ]]; then
@@ -290,6 +342,22 @@ Interactive() {
                                       vim $PJ/src/$JF.java
                                  else
                                       print "Error: $PJ/src/$JF.java already exists"
+                                      echo "enter 'yes' to proceed?"
+                                      read  answer
+                                      case $answer in
+                                           yes|Yes|YES|y)
+                                                echo "you indicated 'yes'"
+                                                echo "new class created"
+                                                cp $PJ/src/$JF.java $PJ/src/$JF.java.sav
+                                                cat $TEMPLATE | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+                                                cp $Tmp $PJ/src/$JF.java
+                                                vim $PJ/src/$JF.java
+                                                ;;
+                                           no|n|"")
+                                                echo "you indicated 'no'"
+                                                echo "nothing to change"
+                                                ;;
+                                           esac
                                  fi
                            fi ;;
                   delete)  SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
@@ -333,17 +401,33 @@ Interactive() {
                                 compile $SZ 1
                            done 
                            ;;
-                       l)  figg -l ;;
+                       l)  
+                           ls $PJ/src/*.java | sort | gawk '
+                           {
+                               n = split($0,a,"/")
+                               if ( NR % 4 == 0) 
+                                   printf("\n");
+                               else
+                                   printf("%s  ", a[n]);
+                           }
+                           ' | column -x 
+                           ;;
+                       tar) 
+                           DSTAMP=`date '+%Y-%m-%d_%H-%M-%S'` 
+                           tar --exclude=$FIGGHOME/archives -cvf "$FIGGHOME/archives/figghome_${DSTAMP}.tar" $FIGGHOME         >/dev/null 2>&1
+                           ls -lh "$FIGGHOME/archives/figghome_${DSTAMP}.tar"
+                           ;;
                        archiveall) 
                            DSTAMP=`date '+%F_%H%M%S' | sed 's/-//g'` 
-                           tar --exclude=$FIGGHOME/archives -cvf "$FIGGHOME/archives/figghome${DSTAMP}.tar" $FIGGHOME 
+                           tar --exclude=$FIGGHOME/archives -cvf "$FIGGHOME/archives/figghome${DSTAMP}.tar" $FIGGHOME           >/dev/null 2>&1
+                           gzip "$FIGGHOME/archives/figghome${DSTAMP}.tar"                                                      >/dev/null 2>&1
                            ls -lh "$FIGGHOME/archives/figghome${DSTAMP}.tar"
-                           gzip "$FIGGHOME/archives/figghome${DSTAMP}.tar"
-                           ls -lh "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz"
-                           uuencode "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz"   \
-                                    "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz" > \
-                                    "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz.uu.txt"
-                           ls -lh "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz.uu.txt"
+
+#                            ls -lh "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz"
+#                            uuencode "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz"   \
+#                                     "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz" > \
+#                                     "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz.uu.txt"
+#                            ls -lh "$FIGGHOME/archives/figghome${DSTAMP}.tar.gz.uu.txt"a
                            ;;
                        archive) 
                            DSTAMP=`date '+%F_%H%M%S' | sed 's/-//g'` 
@@ -354,6 +438,11 @@ Interactive() {
                            ls -l $FIGGHOME/archives ;;
                        pls)  ls -l . ;;
                        ls)   figg -p $PJ -l ;;
+                       lsl)  ls -lt $PJ/src/*.java | gawk 'NR<9' ;;
+                       lsa)  ls -lrt $PJ/src/*.java ;;
+                       lss)  ls -l $PJ/src/${arr[1]} ;;
+                       lst) 
+                           ls -l $FIGGHOME/templates ;;
                        reset)
                            rm -f $PJ/classes/*.class  >/dev/null 2>&1
                            ;;
@@ -368,7 +457,7 @@ Interactive() {
                 done
 }
 NOARG="1"
-while getopts "hjp:i:lx" arg
+while getopts "qhjp:i:lx" arg
 do
         NOARG="0"
 	case $arg in
@@ -378,6 +467,16 @@ do
                ;;
             p) PJ=$OPTARG
                ;;
+            q)  
+                PJ="Main"
+                JF="QuickClass"
+                if [ ! -e "$PJ/src/$JF.java" ]; then
+                    cat $QUICKCLASS | gawk -v v=$JF '{sub("NNAME",v,$0);print $0;}' > $Tmp
+                    cp $Tmp $PJ/src/$JF.java
+                fi
+                shift $(($OPTIND - 1))
+                Interactive
+                ;;  
             i)  
                 # JF=$OPTARG 
                 PJ=`echo $OPTARG | gawk -v out="." -F / '/[/]/{out=$1;} END{print out}'`
