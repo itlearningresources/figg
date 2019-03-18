@@ -22,12 +22,18 @@ Typical uses:  figg                                    - i-mode, project=., clas
 Interactive mode commands
                f &ltclass-name&gt    - change the current class
                n &ltclass-name&gt    - create new file &ltproject-name&gt/src/&ltclass-name&gt.java
+               sa &ltclass-name&gt   - save as &ltproject-name&gt/src/&ltclass-name&gt.java
                p &ltproject-name&gt  - change the current project
                np &ltproject-name&gt - new project (project folder with sub folders)
+               init              - resets interactive mode (sets to Main/Main)
                e                 - edit (vim) &ltproject-name&gt/src/&ltclass-name&gt.java
                cat               - cat &ltproject-name&gt/src/&ltclass-name&gt.java
+               tmp               - write &ltclass-name&gt.java to /tmp
+               t                 - create QuickClass using QuickClass template
+               tb                - create QuickClass without using a template (blank QuickClass)
+               eq                - edit the QuickClass template
                reset             - deletes all class for the current project
-               ls                - ls &ltproject-name&gt/src
+               ls                - lists classes in &ltproject-name&gt
                c                 - compile &ltproject-name&gt/src/&ltclass-name&gt.java
                r                 - run &ltproject-name&gt/classes/&ltclass-name&gt.class
                R                 - run &ltproject-name&gt/classes/&ltclass-name&gt.class in split window
@@ -46,7 +52,7 @@ Project directory organization
           |--/templates
           |--/&ltPROJECT&gt
              |--/src
-                |--/&ltSourceFile&gt.java
+                |--/&ltclass-name&gt.java
              |--/classes
              |--/lib
              |--/doc

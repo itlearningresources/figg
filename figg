@@ -67,7 +67,7 @@ projectorgnodetails() {
      print -R "          |--/templates"
      print -R "          |--/<PROJECT>"
      print -R "             |--/src"
-     print -R "                |--/<SourceFile>.java"
+     print -R "                |--/<class-name>.java"
      print -R "             |--/classes"
      print -R "             |--/lib"
      print -R "             |--/doc"
@@ -129,15 +129,22 @@ function cap {
 }
 
 
-PJ=Main
-JF=Main
+PJ=`cat ~/.figglast | gawk 'BEGIN {FS="/"}{print $1}'`
+if [[ "$PJ" = "" ]]; then
+     PJ=Main
+fi
+JF=`cat ~/.figglast | gawk 'BEGIN {FS="/"}{print $2}'`
+if [[ "$JF" = "" ]]; then
+     JF=Main
+fi
+
 makeproject
 
 # CPATH=$CPATH:lib/joda-time-2.8.1.jar
 # CPATH=$CPATH:lib/commons-logging-1.1.3.jar 
 CPATH=
 
-
+#DOC
 figghelp() {
                    print "\n"
                    print "figg - a command line java development environment"
@@ -156,12 +163,18 @@ figghelp() {
                    print "Interactive mode commands"
                    print "               f <class-name>    - change the current class" 
                    print "               n <class-name>    - create new file <project-name>/src/<class-name>.java"
+                   print "               sa <class-name>   - save as <project-name>/src/<class-name>.java"
                    print "               p <project-name>  - change the current project"
                    print "               np <project-name> - new project (project folder with sub folders)"
+                   print "               init              - resets interactive mode (sets to Main/Main)"
                    print "               e                 - edit (vim) <project-name>/src/<class-name>.java"
                    print "               cat               - cat <project-name>/src/<class-name>.java"
+                   print "               tmp               - write <class-name>.java to /tmp"
+                   print "               t                 - create QuickClass using QuickClass template"
+                   print "               tb                - create QuickClass without using a template (blank QuickClass)"
+                   print "               eq                - edit the QuickClass template"
                    print "               reset             - deletes all class for the current project"
-                   print "               ls                - ls <project-name>/src"
+                   print "               ls                - lists classes in <project-name>"
                    print "               c                 - compile <project-name>/src/<class-name>.java"
                    print "               r                 - run <project-name>/classes/<class-name>.class"
                    print "               R                 - run <project-name>/classes/<class-name>.class in split window"
@@ -272,16 +285,18 @@ compileDebug() {
 Interactive() {
                 while [[ "$cmd" != "q" ]]
                 do
+                     print "$PJ/$JF" > ~/.figglast
                      print -n "figg/$PJ/$JF >> ";read var;set -A arr $var;
                      DSTAMP=`date '+%F_%H%M%S' | sed 's/-//g'` 
                      cp $PJ/src/$JF.java "$FIGGHOME/archives/JF_${PJ}_${JF}_${DSTAMP}.java"
                      cp $PJ/src/$JF.java "$FIGGHOME/archives/JF_${DSTAMP}_${PJ}_${JF}.java"
-                     rm `ls -t  $FIGGHOME/archives/JF_*_${PJ}_${JF}.java | gawk 'NR>16'`
+                     rm `ls -t  $FIGGHOME/archives/JF_*_${PJ}_${JF}.java | gawk 'NR>16'` >/dev/null 2>&1
                      # ls -t JF*  | gawk 'NR<5'
 
 
+                     abbrev=${arr[0]};
                      cmd=${arr[0]};
-	             case $cmd in
+	             case $abbrev in
                                  nc)   cmd="n" ;;
                                  nb)   cmd="b" ;;
                                  sc)   cmd="f" ;;
@@ -289,7 +304,7 @@ Interactive() {
                                edit)   cmd="e" ;;
                               clear)   cmd="reset" ;;
 	             esac
-	             case $cmd  in
+	             case $cmd in
                        x)   cmd="q" ;;
                        tmp) cp $PJ/src/$JF.java  /tmp ;;
                        e)   vim $PJ/src/$JF.java ;;
@@ -319,6 +334,12 @@ Interactive() {
                             fi
                             ;;
                        eq)  vim $QUICKCLASS
+                            ;;
+                       tb)  print "Initializing \"QuickClass\" Class"
+                                      JF="QuickClass"
+                                      rm -rf "$PJ/src/$JF.java" >/dev/null 2>&1
+                                      touch $PJ/src/$JF.java
+                                      vim $PJ/src/$JF.java
                             ;;
                        t)   print "Initializing \"QuickClass\" Class"
                             echo "enter 'yes' to proceed?"
@@ -437,7 +458,12 @@ Interactive() {
                        archivels) 
                            ls -l $FIGGHOME/archives ;;
                        pls)  ls -l . ;;
-                       ls)   figg -p $PJ -l ;;
+                   ls)   ls $PJ/src/*.java | gawk 'BEGIN{FS="/";}{print $NF}' | sed 's/[.].*$//g' | gawk '
+                         BEGIN { i=0; n=0; }
+                               { a[i]=$0; i++; }
+                         END   {n=i;t=int(n/3);print n " classes";for (i=0;i<t;i++) printf("%40s %40s %40s\n",a[i],a[i+t],a[i+(2*t)]); }'
+                             ;;
+                       lsls) figg -p $PJ -l ;;
                        lsl)  ls -lt $PJ/src/*.java | gawk 'NR<9' ;;
                        lsa)  ls -lrt $PJ/src/*.java ;;
                        lss)  ls -l $PJ/src/${arr[1]} ;;
@@ -445,6 +471,11 @@ Interactive() {
                            ls -l $FIGGHOME/templates ;;
                        reset)
                            rm -f $PJ/classes/*.class  >/dev/null 2>&1
+                           ;;
+                       init)
+                           rm -rf  ~/.figglast  >/dev/null 2>&1
+                           PJ=Main
+                           JF=Main
                            ;;
                        h) help
                           ;;
