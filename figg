@@ -150,46 +150,43 @@ figghelp() {
                    print "figg - a command line java development environment"
                    print "\n"
                    print "Usage:         figg [-i] [-p] [-l] [-h]"
-                   print "               -i [<project-name>/]<class-name>        - enters interactive mode (i-mode)"
-                   print "               -p <project-name>                       - select project (project folder)"
-                   print "               -l                                      - list project folder"
-                   print "               -h                                      - display usage\n"
+                   print "         -i [<project-name>/]<class-name>        - enters interactive mode (i-mode)"
+                   print "         -p <project-name>                       - select project (project folder)"
+                   print "         -l                                      - list project folder"
+                   print "         -h                                      - display usage"
                    print "Typical uses:  figg                                    - i-mode, project=., class-name == Main>"
-                   print "               figg -i <c-name>                        - i-mode, project=., class-name=<c-name>"
-                   print "               figg -i <p-name>/<c-name>               - i-mode, project=<p-name>, class-name=<c-name>"
-                   print "               figg -p <p-name> -i <c-name>            - i-mode, project=<p-name>, class-name=<c-name>"
-                   print "\n"
-
+                   print "         figg -i <c-name>                        - i-mode, project=., class-name=<c-name>"
+                   print "         figg -i <p-name>/<c-name>               - i-mode, project=<p-name>, class-name=<c-name>"
+                   print "         figg -p <p-name> -i <c-name>            - i-mode, project=<p-name>, class-name=<c-name>"
                    print "Interactive mode commands"
-                   print "               f <class-name>    - change the current class" 
-                   print "               n <class-name>    - create new file <project-name>/src/<class-name>.java"
-                   print "               sa <class-name>   - save as <project-name>/src/<class-name>.java"
-                   print "               p <project-name>  - change the current project"
-                   print "               np <project-name> - new project (project folder with sub folders)"
-                   print "               init              - resets interactive mode (sets to Main/Main)"
-                   print "               e                 - edit (vim) <project-name>/src/<class-name>.java"
-                   print "               cat               - cat <project-name>/src/<class-name>.java"
-                   print "               tmp               - write <class-name>.java to /tmp"
-                   print "               t                 - create QuickClass using QuickClass template"
-                   print "               tb                - create QuickClass without using a template (blank QuickClass)"
-                   print "               eq                - edit the QuickClass template"
-                   print "               reset             - deletes all class for the current project"
-                   print "               ls                - lists classes in <project-name>"
-                   print "               c                 - compile <project-name>/src/<class-name>.java"
-                   print "               r                 - run <project-name>/classes/<class-name>.class"
-                   print "               R                 - run <project-name>/classes/<class-name>.class in split window"
-                   print "               g                 - compile/runi/create listing for <project-name>/classes/<class-name>"
-                   print "               gg                - display last listing for  <project-name>/classes/<class-name>"
-                   print "               j                 - generate and display javadoc <project-name>/classes/<class-name>.java"
-                   print "               lss               - list the src directory for <project-name>"
-                   print "               lst               - list the templates directory"
-                   print "\n"
-                   print "               q                 - quit" 
-                   print "               h                 - help\n" 
-                   projectorgnodetails
+                   print "         c <class-name>    - change the current class" 
+                   print "         n <class-name>    - create new file <project-name>/src/<class-name>.java"
+                   print "         sa <class-name>   - save as <project-name>/src/<class-name>.java"
+                   print "         p <project-name>  - change the current project"
+                   print "         np <project-name> - new project (project folder with sub folders)"
+                   print "         init              - resets interactive mode (sets to Main/Main)"
+                   print "         e                 - edit (vim) <project-name>/src/<class-name>.java"
+                   print "         cat               - cat <project-name>/src/<class-name>.java"
+                   print "         tmp               - write <class-name>.java to /tmp"
+                   print "         t                 - create QuickClass using QuickClass template"
+                   print "         tb                - create QuickClass without using a template (blank QuickClass)"
+                   print "         eq                - edit the QuickClass template"
+                   print "         reset             - deletes all class for the current project"
+                   print "         ls                - lists classes in <project-name>"
+                   print "         cc                - compile <project-name>/src/<class-name>.java"
+                   print "         g                 - compile/run/create listing for <project-name>/classes/<class-name>"
+                   print "         r                 - run <project-name>/classes/<class-name>.class"
+                   print "         R                 - run <project-name>/classes/<class-name>.class in split window"
+                   print "         gg                - display last listing for  <project-name>/classes/<class-name>"
+                   print "         j                 - generate and display javadoc <project-name>/classes/<class-name>.java"
+                   print "         lss               - list the src directory for <project-name>"
+                   print "         lst               - list the templates directory"
+                   print "         q                 - quit" 
+                   print "         h                 - help\n" 
 }
-help() {
+helpdetail() {
                    figghelp
+                   projectorgnodetails
                    print "\$FIGGHOME is $FIGGHOME"
                    print "Current source file is $PJ/src/$JF" 
                    print "Current command line classpath is" 
@@ -198,6 +195,10 @@ help() {
                    java -version
                    compile $JF 0
                    run 0 $JF
+                   print "\n" 
+}
+help() {
+                   figghelp
                    print "\n" 
 }
 resetmain() {
@@ -299,7 +300,7 @@ Interactive() {
 	             case $abbrev in
                                  nc)   cmd="n" ;;
                                  nb)   cmd="b" ;;
-                                 sc)   cmd="f" ;;
+                                 sc)   cmd="c" ;;
                                  sp)   cmd="p" ;;
                                edit)   cmd="e" ;;
                               clear)   cmd="reset" ;;
@@ -314,7 +315,7 @@ Interactive() {
                             else
                                  print "Error: Project ${arr[1]} does not exist"
                             fi ;;
-                       f)   SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+                       c)   SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                             SZ=`cap $SZ`
                             if [[ ! -z "${SZ}" ]]; then
                                  JF=$SZ
@@ -393,7 +394,7 @@ Interactive() {
                                 touch $Tmp $PJ/src/$JF.java
                                 vim $PJ/src/$JF.java
                            fi ;;
-                       c)  compileDebug $JF 1 ;;
+                      cc)  compileDebug $JF 1 ;;
                        g)  compileRunList $JF 
                            cat $Tmp
                            cp $Tmp $PJ/lst/$JF.listing
