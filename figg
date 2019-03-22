@@ -145,6 +145,9 @@ makeproject
 CPATH=
 
 #DOC
+shorthelp() {
+     print "(c)hange class <cls>, (n)ew class <cls>, (s)ave class <cls>, (t)quickclass with template, (tb) quickclass with no template"
+}
 figghelp() {
                    print "\n"
                    print "figg - a command line java development environment"
@@ -463,7 +466,12 @@ Interactive() {
                          BEGIN { i=0; n=0; }
                                { a[i]=$0; i++; }
                          END   {n=i;t=int(n/3);print n " classes";for (i=0;i<t;i++) printf("%40s %40s %40s\n",a[i],a[i+t],a[i+(2*t)]); }'
-                             ;;
+                         ;;
+                   lsc)  ls $PJ/classes/*.class | gawk 'BEGIN{FS="/";}{print $NF}' | sed 's/[.].*$//g' | gawk '
+                         BEGIN { i=0; n=0; }
+                               { a[i]=$0; i++; }
+                         END   {n=i;t=int(n/3);print n " classes";for (i=0;i<t;i++) printf("%40s %40s %40s\n",a[i],a[i+t],a[i+(2*t)]); }'
+                         ;;
                        lsls) figg -p $PJ -l ;;
                        lsl)  ls -lt $PJ/src/*.java | gawk 'NR<9' ;;
                        lsa)  ls -lrt $PJ/src/*.java ;;
@@ -479,6 +487,8 @@ Interactive() {
                            JF=Main
                            ;;
                        h) help
+                          ;;
+                       ?) shorthelp
                           ;;
                        *) if [ -s src/$cmd.java ]
                           then
