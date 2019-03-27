@@ -318,6 +318,32 @@ Interactive() {
                             else
                                  print "Error: Project ${arr[1]} does not exist"
                             fi ;;
+                       a)   JF=$JFA ;;
+                      aa)   JF=$JFAA ;;
+                     aaa)   JF=$JFAAA ;;
+                    aaaa)   JF=$JFAAAA ;;
+                       s)   STRIN=${arr[1]}
+                            if [ "$STRIN" = "a" ] ; then
+                                JFA=$JF
+                            fi
+                            if [ "$STRIN" = "aa" ] ; then
+                                JFAA=$JF
+                            fi
+                            if [ "$STRIN" = "aaa" ] ; then
+                                JFAAA=$JF
+                            fi
+                            if [ "$STRIN" = "aaaa" ] ; then
+                                JFAAAA=$JF
+                            fi
+                            print "$PJ/$JFA" > ~/.figgjfa
+                            print "$PJ/$JFAA" > ~/.figgjfaa
+                            print "$PJ/$JFAAA" > ~/.figgjfaaa
+                            print "$PJ/$JFAAAA" > ~/.figgjfaaaa
+                            print "A        : "$JFA
+                            print "AA       : "$JFAA
+                            print "AAA      : "$JFAAA
+                            print "AAAA     : "$JFAAAA
+                            ;;
                        c)   SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                             SZ=`cap $SZ`
                             if [[ ! -z "${SZ}" ]]; then
@@ -467,10 +493,15 @@ Interactive() {
                                { a[i]=$0; i++; }
                          END   {n=i;t=int(n/3);print n " classes";for (i=0;i<t;i++) printf("%40s %40s %40s\n",a[i],a[i+t],a[i+(2*t)]); }'
                          ;;
-                   lsc)  ls $PJ/classes/*.class | gawk 'BEGIN{FS="/";}{print $NF}' | sed 's/[.].*$//g' | gawk '
-                         BEGIN { i=0; n=0; }
-                               { a[i]=$0; i++; }
-                         END   {n=i;t=int(n/3);print n " classes";for (i=0;i<t;i++) printf("%40s %40s %40s\n",a[i],a[i+t],a[i+(2*t)]); }'
+                   lsc)  
+                           print ""
+                           find $PJ/classes/ -type f | sort -r
+                           print ""
+                           # find $PJ/classes/ -type f | sed "s#^..##" | sort -r
+#                          ls $PJ/classes/*.class | gawk 'BEGIN{FS="/";}{print $NF}' | sed 's/[.].*$//g' | gawk '
+#                          BEGIN { i=0; n=0; }
+#                                { a[i]=$0; i++; }
+#                          END   {n=i;t=int(n/3);print n " classes";for (i=0;i<t;i++) printf("%40s %40s %40s\n",a[i],a[i+t],a[i+(2*t)]); }'
                          ;;
                        lsls) figg -p $PJ -l ;;
                        lsl)  ls -lt $PJ/src/*.java | gawk 'NR<9' ;;
@@ -479,7 +510,14 @@ Interactive() {
                        lst) 
                            ls -l $FIGGHOME/templates ;;
                        reset)
-                           rm -f $PJ/classes/*.class  >/dev/null 2>&1
+                           print    " Deleting all class files"
+                           print -n " Enter '10111' to confirm >> "
+                           read STRIN
+                           if [ "$STRIN" != "10111" ] ; then
+                                print ""
+                           else
+                                rm -rf $PJ/classes/*  >/dev/null 2>&1
+                           fi
                            ;;
                        init)
                            rm -rf  ~/.figglast  >/dev/null 2>&1
