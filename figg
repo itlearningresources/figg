@@ -31,6 +31,7 @@ XLINTS=`gawk    -v w=XLINTS    -v v=""    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$
 RUNHWIDTH=`gawk -v w=RUNHWIDTH -v v=88    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
 QFIXWIDTH=`gawk -v w=QFIXWIDTH -v v=12    -F= '{gsub(/[;].*$/,"",$0);gsub(/[ ]*$/,"",$0);if ($1==w) {v=$2;exit;}}END{print v}' ~/.figg`
 
+print "$XLINTS"
 
 if [[ -z "${FIGGPROJECTSHOME}" ]]; then
       print "Environemnt variable \"FIGGPROJECTSHOME\" is undefined"
@@ -286,7 +287,24 @@ compileDebug() {
                     print "Compile OK" >&2
                fi
 }
+showjfset() {
+                print "A        : "$PJA"/"$JFA
+                print "AA       : "$PJAA"/"$JFAA
+                print "AAA      : "$PJAAA"/"$JFAAA
+                print "AAAA     : "$PJAAAA"/"$JFAAAA
+                print ""
+
+}
+#                           run 1 $JF $1 $2 $3 $4 $5 $6 ;;
 Interactive() {
+                PJA=`cat ~/.figgjfa | gawk 'BEGIN {FS="/"}{print $1}'`
+                JFA=`cat ~/.figgjfa | gawk 'BEGIN {FS="/"}{print $2}'`
+                PJAA=`cat ~/.figgjfaa | gawk 'BEGIN {FS="/"}{print $1}'`
+                JFAA=`cat ~/.figgjfaa | gawk 'BEGIN {FS="/"}{print $2}'`
+                PJAAA=`cat ~/.figgjfaaa | gawk 'BEGIN {FS="/"}{print $1}'`
+                JFAAA=`cat ~/.figgjfaaa | gawk 'BEGIN {FS="/"}{print $2}'`
+                PJAAAA=`cat ~/.figgjfaaaa | gawk 'BEGIN {FS="/"}{print $1}'`
+                JFAAAA=`cat ~/.figgjfaaaa | gawk 'BEGIN {FS="/"}{print $2}'`
                 while [[ "$cmd" != "q" ]]
                 do
                      print "$PJ/$JF" > ~/.figglast
@@ -318,10 +336,15 @@ Interactive() {
                             else
                                  print "Error: Project ${arr[1]} does not exist"
                             fi ;;
-                       a)   JF=$JFA ;;
+                       a)   JF=$JFA
+                            cat ~/.figgjfa
+                            PJ=`cat ~/.figgjfa | gawk 'BEGIN {FS="/"}{print $1}'`
+                            JF=`cat ~/.figgjfa | gawk 'BEGIN {FS="/"}{print $2}'`
+                            ;;
                       aa)   JF=$JFAA ;;
                      aaa)   JF=$JFAAA ;;
                     aaaa)   JF=$JFAAAA ;;
+                      ss)   showjfset ;;
                        s)   STRIN=${arr[1]}
                             if [ "$STRIN" = "a" ] ; then
                                 JFA=$JF
@@ -343,6 +366,7 @@ Interactive() {
                             print "AA       : "$JFAA
                             print "AAA      : "$JFAAA
                             print "AAAA     : "$JFAAAA
+                            print ""
                             ;;
                        c)   SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                             SZ=`cap $SZ`
@@ -424,6 +448,8 @@ Interactive() {
                                 vim $PJ/src/$JF.java
                            fi ;;
                       cc)  compileDebug $JF 1 ;;
+                  .figg)   vi ~/.figg ;;
+                      ccc) javac -Xlint:unchecked $FIGGHOME"/projects/"$PJ"/src/"$JF".java" ;;
                        g)  compileRunList $JF 
                            cat $Tmp
                            cp $Tmp $PJ/lst/$JF.listing
@@ -434,7 +460,9 @@ Interactive() {
                            run 1 $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
                            vim -c "wincmd w | vert resize $RUNHWIDTH | wincmd w" -O $PJ/src/$JF.java $Tmp
                            ;;
-                       r)  run 1 $JF $1 $2 $3 $4 $5 $6 ;;
+                       r)  STRIN=${arr[1]}
+                           run 1 $JF $STRIN
+                           ;;
                        j)  mkdir -p $PJ/doc
                            rm -rf $PJ/doc/*          >/dev/null 2>&1
                            javadoc -d $PJ/doc $PJ/src/*.java

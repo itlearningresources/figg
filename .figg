@@ -6,6 +6,7 @@ QFIXWIDTH=12
 
 
 XLINTS=-Xlint:-deprecation -Xlint:-rawtypes
+XLINTS=
 
 
 JAVAPATH=/home/<EXAMPLE-USER>/jdk-11.0.2/bin/java 
