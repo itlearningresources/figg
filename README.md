@@ -3,12 +3,8 @@
 #### written in Korn Shell and Vim
 <pre>
 
-
-
 figg - a command line java development environment
-
-
-Usage:         figg [-i] [-p] [-l] [-h]
+Usage: figg [-i] [-p] [-l] [-h]
          -i [&ltproject-name&gt/]&ltclass-name&gt        - enters interactive mode (i-mode)
          -p &ltproject-name&gt                       - select project (project folder)
          -l                                      - list project folder
@@ -18,14 +14,15 @@ Typical uses:  figg                                    - i-mode, project=., clas
          figg -i &ltp-name&gt/&ltc-name&gt               - i-mode, project=&ltp-name&gt, class-name=&ltc-name&gt
          figg -p &ltp-name&gt -i &ltc-name&gt            - i-mode, project=&ltp-name&gt, class-name=&ltc-name&gt
 Interactive mode commands
+         b &ltclass-name&gt             Create and Edit blank class
          cat                        Cat &ltproject-name&gt/src/&ltclass-name&gt.java
-         cc                         Compile &ltproject-name&gt/src/&ltclass-name&gt.java"
+         cc                         Compile &ltproject-name&gt/src/&ltclass-name&gt.java
          c &ltclass-name&gt             Change the current class"
          d                          vim srcfile.java.lst and srcfile.java.java
-         e                          edit (vim) &ltproject-name&gt/src/&ltclass-name&gt.java"
+         e                          edit (vim) &ltproject-name&gt/src/&ltclass-name&gt.java
          eq                         Edit the QuickClass template
          .figg                      Edit ~/.figg file   
-         g                          Compile/run/create listing for &ltproject-name&gt/classes/&ltclass-name&gt"
+         g                          Compile/run/create listing for &ltproject-name&gt/classes/&ltclass-name&gt
          gg                         Display last listing for &ltproject-name&gt/classes/&ltclass-name&gt
          ?                          Help                
          h                          Help                
@@ -39,6 +36,7 @@ Interactive mode commands
          n &ltclass-name&gt             Create new file &ltproject-name&gt/src/&ltclass-name&gt.java
          np &ltproject-name&gt          New project (project folder with sub folders)
          reset                      Delete all class for the current project
+         resetmain                  Reset the Main class to the default template
          rr                         Compile and Run srcfile.java
          r                          Run &ltproject-name&gt/classes/&ltclass-name&gt.class
          R                          Run &ltproject-name&gt/classes/&ltclass-name&gt.class in split window
@@ -48,6 +46,4 @@ Interactive mode commands
          t                          Create QuickClass using QuickClass template
          tmp                        Copy srcfile.java to /tmp/srcfile.java
          y                          Compile all project java files
-
-
 </pre>

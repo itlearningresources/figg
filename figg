@@ -150,10 +150,8 @@ shorthelp() {
      print "(c)hange class <cls>, (n)ew class <cls>, (s)ave class <cls>, (t)quickclass with template, (tb) quickclass with no template"
 }
 figghelp() {
-                   print "\n"
                    print "figg - a command line java development environment"
-                   print "\n"
-                   print "Usage:         figg [-i] [-p] [-l] [-h]"
+                   print "Usage: figg [-i] [-p] [-l] [-h]"
                    print "         -i [<project-name>/]<class-name>        - enters interactive mode (i-mode)"
                    print "         -p <project-name>                       - select project (project folder)"
                    print "         -l                                      - list project folder"
@@ -164,7 +162,6 @@ figghelp() {
                    print "         figg -p <p-name> -i <c-name>            - i-mode, project=<p-name>, class-name=<c-name>"
                    print "Interactive mode commands"
                    gawk -f $FIGGHOME/help.awk $FIGGHOME/figg | sort
-                   print "\n"
 }
 helpdetail() {
                    figghelp
@@ -310,7 +307,7 @@ Interactive() {
                        tmp) # CMD: Copy $JF to /tmp/$JF
                             cp $PJ/src/$JF.java /tmp
                             ;;
-                       e)   # CMD: edit (vim) <project-name>/src/<class-name>.java"
+                       e)   # CMD: edit (vim) <project-name>/src/<class-name>.java
                             vim $PJ/src/$JF.java
                             ;;
                        et)  vim $FIGGHOME/templates/${arr[1]}.txt ;;
@@ -395,8 +392,6 @@ Interactive() {
                                       vim $PJ/src/$JF.java
                             esac
                             ;;
-#                    print "         sa <class-name>   - save as <project-name>/src/<class-name>.java"
-#                    print "         p <project-name>  - change the current project"
                        n)   # CMD: <class-name> Create new file <project-name>/src/<class-name>.java
                             SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                             SZ=`cap $SZ`
@@ -431,7 +426,8 @@ Interactive() {
                            if [[ ! -z "${SZ}" ]]; then
                                       rm -i  $PJ/src/$SZ.java
                            fi ;;
-                       b)  SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+                       b)  # CMD: <class-name> Create and Edit blank class
+                           SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                            SZ=`cap $SZ`
                            if [[ ! -z "${SZ}" ]]; then
                                 JF=$SZ
@@ -439,18 +435,20 @@ Interactive() {
                                 vim $PJ/src/$JF.java
                            fi ;;
 
-                      cc)  # CMD: Compile <project-name>/src/<class-name>.java"
-                           compileDebug $JF 1 ;;
+                      cc)  # CMD: Compile <project-name>/src/<class-name>.java
+                           compileDebug $JF 1
+                           ;;
 
                    .figg)  # CMD: Edit ~/.figg file
-                           vi ~/.figg ;;
+                           vi ~/.figg
+                           ;;
 
                      ccc)  javac -Xlint:unchecked $FIGGHOME"/projects/"$PJ"/src/"$JF".java" ;;
 
                        rr) # CMD: Compile and Run $JF
                            compileRun $JF 
                            ;;
-                       g)  # CMD: Compile/run/create listing for <project-name>/classes/<class-name>"
+                       g)  # CMD: Compile/run/create listing for <project-name>/classes/<class-name>
                            compileRunList $JF 
                            cat $Tmp
                            cp $Tmp $PJ/lst/$JF.listing
@@ -483,7 +481,9 @@ Interactive() {
                      cat)  # CMD: Cat <project-name>/src/<class-name>.java
                            cat $PJ/src/$JF.java
                            ;;
-               resetmain)  resetmain ;;
+               resetmain)  # CMD: Reset the Main class to the default template
+                           resetmain
+                           ;;
                        y)  # CMD: Compile all project java files
                            print "Compile All"
                            for file in $PJ/src/*.java; do
