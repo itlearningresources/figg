@@ -163,30 +163,8 @@ figghelp() {
                    print "         figg -i <p-name>/<c-name>               - i-mode, project=<p-name>, class-name=<c-name>"
                    print "         figg -p <p-name> -i <c-name>            - i-mode, project=<p-name>, class-name=<c-name>"
                    print "Interactive mode commands"
-                   print "         c <class-name>    - change the current class" 
-                   print "         n <class-name>    - create new file <project-name>/src/<class-name>.java"
-                   print "         sa <class-name>   - save as <project-name>/src/<class-name>.java"
-                   print "         p <project-name>  - change the current project"
-                   print "         np <project-name> - new project (project folder with sub folders)"
-                   print "         init              - resets interactive mode (sets to Main/Main)"
-                   print "         e                 - edit (vim) <project-name>/src/<class-name>.java"
-                   print "         cat               - cat <project-name>/src/<class-name>.java"
-                   print "         tmp               - write <class-name>.java to /tmp"
-                   print "         t                 - create QuickClass using QuickClass template"
-                   print "         tb                - create QuickClass without using a template (blank QuickClass)"
-                   print "         eq                - edit the QuickClass template"
-                   print "         reset             - deletes all class for the current project"
-                   print "         ls                - lists classes in <project-name>"
-                   print "         cc                - compile <project-name>/src/<class-name>.java"
-                   print "         g                 - compile/run/create listing for <project-name>/classes/<class-name>"
-                   print "         r                 - run <project-name>/classes/<class-name>.class"
-                   print "         R                 - run <project-name>/classes/<class-name>.class in split window"
-                   print "         gg                - display last listing for  <project-name>/classes/<class-name>"
-                   print "         j                 - generate and display javadoc <project-name>/classes/<class-name>.java"
-                   print "         lss               - list the src directory for <project-name>"
-                   print "         lst               - list the templates directory"
-                   print "         q                 - quit" 
-                   print "         h                 - help\n" 
+                   gawk -f $FIGGHOME/help.awk $FIGGHOME/figg | sort
+                   print "\n"
 }
 helpdetail() {
                    figghelp
@@ -326,10 +304,15 @@ Interactive() {
                                edit)   cmd="e" ;;
                               clear)   cmd="reset" ;;
 	             esac
+                     # CMDBEGIN:
 	             case $cmd in
                        x)   cmd="q" ;;
-                       tmp) cp $PJ/src/$JF.java  /tmp ;;
-                       e)   vim $PJ/src/$JF.java ;;
+                       tmp) # CMD: Copy $JF to /tmp/$JF
+                            cp $PJ/src/$JF.java /tmp
+                            ;;
+                       e)   # CMD: edit (vim) <project-name>/src/<class-name>.java"
+                            vim $PJ/src/$JF.java
+                            ;;
                        et)  vim $FIGGHOME/templates/${arr[1]}.txt ;;
                        p)   if [ -d "./${arr[1]}" ]; then
                                  PJ=${arr[1]} 
@@ -368,17 +351,19 @@ Interactive() {
                             print "AAAA     : "$JFAAAA
                             print ""
                             ;;
-                       c)   SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+                       c) # CMD: <class-name> Change the current class" 
+                            SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                             SZ=`cap $SZ`
                             if [[ ! -z "${SZ}" ]]; then
                                  JF=$SZ
                             fi ;;
-                       np)  PJ=${arr[1]}
+                       np) # CMD: <project-name> New project (project folder with sub folders)
+                            PJ=${arr[1]}
                             if [[ ! -z "${PJ}" ]]; then
                                  newproject 
                                  ls $PJ 
                             fi ;;
-                       sa)  SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+                       sa)  # CMD: <class-name> Save as
                             SZ=`cap $SZ`
                             if [[ ! -z "$PJ/src/$SZ.java" ]]; then
                                  cp "$PJ/src/$JF.java" "$PJ/src/$SZ.java"
@@ -387,15 +372,18 @@ Interactive() {
                                  print "Error: $PJ/src/$SZ.java already exists"
                             fi
                             ;;
-                       eq)  vim $QUICKCLASS
+                       eq)  # CMD: Edit the QuickClass template
+                            vim $QUICKCLASS
                             ;;
-                       tb)  print "Initializing \"QuickClass\" Class"
+                       tb)  # CMD: Create QuickClass without using a template (blank QuickClass)
+                            print "Initializing \"QuickClass\" Class"
                                       JF="QuickClass"
                                       rm -rf "$PJ/src/$JF.java" >/dev/null 2>&1
                                       touch $PJ/src/$JF.java
                                       vim $PJ/src/$JF.java
                             ;;
-                       t)   print "Initializing \"QuickClass\" Class"
+                       t) # CMD: Create QuickClass using QuickClass template
+                            print "Initializing \"QuickClass\" Class"
                             echo "enter 'yes' to proceed?"
                             read  answer
                             case $answer in
@@ -407,7 +395,10 @@ Interactive() {
                                       vim $PJ/src/$JF.java
                             esac
                             ;;
-                       n)   SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
+#                    print "         sa <class-name>   - save as <project-name>/src/<class-name>.java"
+#                    print "         p <project-name>  - change the current project"
+                       n)   # CMD: <class-name> Create new file <project-name>/src/<class-name>.java
+                            SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                             SZ=`cap $SZ`
                             if [[ ! -z "${SZ}" ]]; then
                                  JF=$SZ
@@ -447,32 +438,54 @@ Interactive() {
                                 touch $Tmp $PJ/src/$JF.java
                                 vim $PJ/src/$JF.java
                            fi ;;
-                      cc)  compileDebug $JF 1 ;;
-                  .figg)   vi ~/.figg ;;
-                      ccc) javac -Xlint:unchecked $FIGGHOME"/projects/"$PJ"/src/"$JF".java" ;;
-                       g)  compileRunList $JF 
+
+                      cc)  # CMD: Compile <project-name>/src/<class-name>.java"
+                           compileDebug $JF 1 ;;
+
+                   .figg)  # CMD: Edit ~/.figg file
+                           vi ~/.figg ;;
+
+                     ccc)  javac -Xlint:unchecked $FIGGHOME"/projects/"$PJ"/src/"$JF".java" ;;
+
+                       rr) # CMD: Compile and Run $JF
+                           compileRun $JF 
+                           ;;
+                       g)  # CMD: Compile/run/create listing for <project-name>/classes/<class-name>"
+                           compileRunList $JF 
                            cat $Tmp
                            cp $Tmp $PJ/lst/$JF.listing
                            ;;
-                       gg) cat $PJ/lst/$JF.listing
+                      gg)  # CMD: Display last listing for <project-name>/classes/<class-name>
+                           cat $PJ/lst/$JF.listing
                            ;;
-                       R)  rm -f $Tmp >/dev/null 2>&1
+                       R)  # CMD: Run <project-name>/classes/<class-name>.class in split window
+                           rm -f $Tmp >/dev/null 2>&1
                            run 1 $JF $1 $2 $3 $4 $5 $6 | tee $Tmp
                            vim -c "wincmd w | vert resize $RUNHWIDTH | wincmd w" -O $PJ/src/$JF.java $Tmp
                            ;;
-                       r)  STRIN=${arr[1]}
+                      rrr)  
+                           $JAVAPATH -cp $PJ/classes:$CPATH 1 2 3
+                           ;;
+                       r)  # CMD: Run <project-name>/classes/<class-name>.class
+                           STRIN=${arr[1]}
                            run 1 $JF $STRIN
                            ;;
-                       j)  mkdir -p $PJ/doc
+                       j)  # CMD: Generate and display javadoc <project-name>/classes/<class-name>.java
+                           mkdir -p $PJ/doc
                            rm -rf $PJ/doc/*          >/dev/null 2>&1
                            javadoc -d $PJ/doc $PJ/src/*.java
                            ls -lh "$PJ/doc/index.html"
                            xdg-open  "$PJ/doc/index.html" >/dev/null 2>&1
                            ;;
-                       d)  vim -o $PJ/tmp/$JF.lst $PJ/src/$JF.java ;;
-                       cat) cat $PJ/src/$JF.java ;;
-                       resetmain) resetmain ;;
-                       y)  print "Compile All"
+                       d)  # CMD: vim $JF.lst and $JF.java
+                           vim -o $PJ/tmp/$JF.lst $PJ/src/$JF.java
+                           ;;
+                     cat)  # CMD: Cat <project-name>/src/<class-name>.java
+                           cat $PJ/src/$JF.java
+                           ;;
+               resetmain)  resetmain ;;
+                       y)  # CMD: Compile all project java files
+                           print "Compile All"
                            for file in $PJ/src/*.java; do
                                SZ=`echo $file | gawk -F / '{gsub(/[.]java$/,"",$NF);gsub(/^src[/]/,"",$NF);print $NF;}'`
                                 print $PJ
@@ -480,7 +493,7 @@ Interactive() {
                                 compile $SZ 1
                            done 
                            ;;
-                       l)  
+                       l)  # CMD: List project java files 
                            ls $PJ/src/*.java | sort | gawk '
                            {
                                n = split($0,a,"/")
@@ -491,7 +504,7 @@ Interactive() {
                            }
                            ' | column -x 
                            ;;
-                       tar) 
+                       tar)  # CMD: tar all of $FIGGHOME into $FIGGHOME/archives
                            DSTAMP=`date '+%Y-%m-%d_%H-%M-%S'` 
                            tar --exclude=$FIGGHOME/archives -cvf "$FIGGHOME/archives/figghome_${DSTAMP}.tar" $FIGGHOME         >/dev/null 2>&1
                            ls -lh "$FIGGHOME/archives/figghome_${DSTAMP}.tar"
@@ -516,12 +529,13 @@ Interactive() {
                        archivels) 
                            ls -l $FIGGHOME/archives ;;
                        pls)  ls -l . ;;
-                   ls)   ls $PJ/src/*.java | gawk 'BEGIN{FS="/";}{print $NF}' | sed 's/[.].*$//g' | gawk '
-                         BEGIN { i=0; n=0; }
-                               { a[i]=$0; i++; }
-                         END   {n=i;t=int(n/3);print n " classes";for (i=0;i<t;i++) printf("%40s %40s %40s\n",a[i],a[i+t],a[i+(2*t)]); }'
-                         ;;
-                   lsc)  
+                    ls) # CMD: Lists project classes
+                           ls $PJ/src/*.java | gawk 'BEGIN{FS="/";}{print $NF}' | sed 's/[.].*$//g' | gawk '
+                           BEGIN { i=0; n=0; }
+                                 { a[i]=$0; i++; }
+                           END   {n=i;t=int(n/3);print n " classes";for (i=0;i<t;i++) printf("%40s %40s %40s\n",a[i],a[i+t],a[i+(2*t)]); }'
+                           ;;
+                   lsc) # CMD: list project class files  
                            print ""
                            find $PJ/classes/ -type f | sort -r
                            print ""
@@ -534,10 +548,15 @@ Interactive() {
                        lsls) figg -p $PJ -l ;;
                        lsl)  ls -lt $PJ/src/*.java | gawk 'NR<9' ;;
                        lsa)  ls -lrt $PJ/src/*.java ;;
-                       lss)  ls -l $PJ/src/${arr[1]} ;;
-                       lst) 
-                           ls -l $FIGGHOME/templates ;;
-                       reset)
+
+                       lss) # CMD: List the src directory for <project-name>
+                            ls -l $PJ/src/${arr[1]}
+                            ;;
+                       lst) # CMD: List the templates directory
+                            ls -l $FIGGHOME/templates
+                            ;;
+
+                       reset) # CMD: Delete all class for the current project
                            print    " Deleting all class files"
                            print -n " Enter '10111' to confirm >> "
                            read STRIN
@@ -547,14 +566,16 @@ Interactive() {
                                 rm -rf $PJ/classes/*  >/dev/null 2>&1
                            fi
                            ;;
-                       init)
+                       init) # CMD: Resets interactive mode (sets to Main/Main)
                            rm -rf  ~/.figglast  >/dev/null 2>&1
                            PJ=Main
                            JF=Main
                            ;;
-                       h) help
+                       h) # CMD: Help
+                          help
                           ;;
-                       ?) shorthelp
+                       ?) # CMD: Help
+                          shorthelp
                           ;;
                        *) if [ -s src/$cmd.java ]
                           then
@@ -563,7 +584,8 @@ Interactive() {
                           ;;
 	             esac
                 done
-}
+                # CMDEND:
+            }
 NOARG="1"
 while getopts "qhjp:i:lx" arg
 do
@@ -575,7 +597,7 @@ do
                ;;
             p) PJ=$OPTARG
                ;;
-            q)  
+            q)   
                 PJ="Main"
                 JF="QuickClass"
                 if [ ! -e "$PJ/src/$JF.java" ]; then
@@ -597,7 +619,6 @@ do
 
                 shift $(($OPTIND - 1))
                 Interactive
-
                ;;
             l) 
                print "\n"
