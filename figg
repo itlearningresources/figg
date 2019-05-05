@@ -361,6 +361,7 @@ Interactive() {
                                  ls $PJ 
                             fi ;;
                        sa)  # CMD: <class-name> Save as
+                            SZ=`echo ${arr[1]} | gawk '{gsub(/[.]java$/,"",$0);print $0;}'`
                             SZ=`cap $SZ`
                             if [[ ! -z "$PJ/src/$SZ.java" ]]; then
                                  cp "$PJ/src/$JF.java" "$PJ/src/$SZ.java"
@@ -463,6 +464,12 @@ Interactive() {
                            ;;
                       rrr)  
                            $JAVAPATH -cp $PJ/classes:$CPATH 1 2 3
+                           ;;
+                       cr) # CMD: Execute run method
+                           run 1 Master $JF 
+                           ;;
+                       run) # CMD: Execute run method
+                           run 1 Master $JF 
                            ;;
                        r)  # CMD: Run <project-name>/classes/<class-name>.class
                            STRIN=${arr[1]}

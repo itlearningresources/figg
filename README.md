@@ -18,6 +18,7 @@ Interactive mode commands
          cat                        Cat &ltproject-name&gt/src/&ltclass-name&gt.java
          cc                         Compile &ltproject-name&gt/src/&ltclass-name&gt.java
          c &ltclass-name&gt             Change the current class"
+         cr                         Execute run method  
          d                          vim srcfile.java.lst and srcfile.java.java
          e                          edit (vim) &ltproject-name&gt/src/&ltclass-name&gt.java
          eq                         Edit the QuickClass template
@@ -40,6 +41,7 @@ Interactive mode commands
          rr                         Compile and Run srcfile.java
          r                          Run &ltproject-name&gt/classes/&ltclass-name&gt.class
          R                          Run &ltproject-name&gt/classes/&ltclass-name&gt.class in split window
+         run                        Execute run method  
          sa &ltclass-name&gt            Save as             
          tar                        tar all of $FIGGHOME into $FIGGHOME/archives
          tb                         Create QuickClass without using a template (blank QuickClass)
