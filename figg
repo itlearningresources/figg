@@ -162,6 +162,7 @@ figghelp() {
                    print "         figg -p <p-name> -i <c-name>            - i-mode, project=<p-name>, class-name=<c-name>"
                    print "Interactive mode commands"
                    gawk -f $FIGGHOME/help.awk $FIGGHOME/figg | sort
+                   print "\n" 
 }
 helpdetail() {
                    figghelp
@@ -178,7 +179,6 @@ helpdetail() {
 }
 help() {
                    figghelp
-                   print "\n" 
 }
 resetmain() {
      JF="Main"
